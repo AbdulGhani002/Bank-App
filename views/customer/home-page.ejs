@@ -8,7 +8,7 @@
        <h2>Account Number: <%=accountDetails.accountNumber%></h2>
        <h2>Balance: <%=accountDetails.balance%></h2>
        <ul id="home-page-menu">
-        <li><a href=""><img src="/deposit.png" alt="Make Payments"><br>Deposit Money</a></li>
+        <li><a href="/deposit?userId=<%=req.query.userId%>&accountId=<%=req.query.accountId%>"><img src="/deposit.png" alt="Make Payments"><br>Deposit Money</a></li>
         <li><a href=""><img src="/credit-card.png" alt="Make Payments"><br>Make Payments</a></li>
         <li><a href=""><img src="/file.png" alt="Financil Statement "><br>Financial Statement</a></li>
         <li><a href=""><img src="/evaluation.png" alt="Transaction History"><br>Transaction History</a></li>

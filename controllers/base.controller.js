@@ -16,7 +16,7 @@ const getHome = async (req, res) => {
   if(!accountDetails) {
     res.redirect('/login');
   }
-  res.render("customer/home-page",{userData:userData, accountDetails:accountDetails});
+  res.render("customer/home-page",{userData:userData, accountDetails:accountDetails,req:req});
 };
 
 module.exports = {
