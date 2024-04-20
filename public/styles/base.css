@@ -142,3 +142,7 @@ main p a:hover {
 .alert p {
   margin: var(--space-2) 0;
 }
+
+ul{
+  list-style-type: none;
+}

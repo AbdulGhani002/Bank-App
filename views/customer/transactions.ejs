@@ -1,0 +1,20 @@
+
+<%- include('../shared/includes/head' , {title:"Home- MoneyHub"})%>
+</head>
+<body>
+<%- include("../shared/includes/header")%>
+<main>
+    <h1>Transactions History</h1>
+    <ul>
+        <% for (let transaction of transactions) { %>
+            <li>
+                <h3><%= transaction.transactionType %></h3>
+                <p>Amount: <%= transaction.amount %></p>
+                <p>Transaction Date: <%= transaction.date %></p>
+                <p>Receiver Account Number: <%= transaction.receiverAccountNumber %></p>
+            </li>
+        <% } %>
+        
+    </ul>
+</main>
+<%- include("../shared/includes/footer")%>

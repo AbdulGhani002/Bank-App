@@ -1,7 +1,8 @@
 const db = require('../data/database');
 
 class Transaction {
-    constructor(transactionType, amount, date, senderAccountNumber, receiverAccountNumber) {
+    constructor(accountId,transactionType, amount, date, senderAccountNumber, receiverAccountNumber) {
+        this.accountId = accountId; 
         this.transactionType = transactionType;
         this.amount = amount;
         this.date = date;
@@ -21,6 +22,7 @@ class Transaction {
                 date: this.date,
                 senderAccountNumber: this.senderAccountNumber,
                 receiverAccountNumber: this.receiverAccountNumber,
+                accountId: this.accountId
             };
 
             await db.getDb().collection("Transactions").insertOne(transactionData);
@@ -28,6 +30,15 @@ class Transaction {
             return transactionData;
         } catch (error) {
             console.error("Error making transaction:", error);
+            throw error;
+        }
+    }
+
+    static async getTransactionsByAccount(accountId) {
+        try {
+            return await db.getDb().collection("Transactions").find({ accountId }).toArray();
+        } catch (error) {
+            console.error("Error retrieving transactions:", error);
             throw error;
         }
     }

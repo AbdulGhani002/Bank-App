@@ -60,6 +60,10 @@ class User {
     const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:enteredUser.userId});
     return accountDetails;
   }
+  async getDetails(accountNumber){
+    const accountDetails = await db.getDb().collection('Accounts').findOne({accountNumber:accountNumber});
+    return db.getDb().collection('Users').findOne({userId:accountDetails.accountId})
+  }
 }
 
 module.exports = User;

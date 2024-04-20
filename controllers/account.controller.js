@@ -2,6 +2,7 @@ const db = require("../data/database");
 const mongodb = require("mongodb");
 const ObjectId = mongodb.ObjectId;
 const logger = require("../utils/logger");
+const Transaction = require("../models/transaction.model");
 
 const getDepositMoney = async (req, res) => {
   const userId = req.query.userId;
@@ -49,6 +50,15 @@ const depositMoney = async (req, res) => {
         { _id: new ObjectId(accountId) },
         { $set: { balance: updatedBalance } }
       );
+    const transactionRecipt = new Transaction(
+      accountId,
+      "Deposit",
+      amount,
+      new Date(),
+      account.accountNumber,
+      account.accountNumber
+    );
+    transactionRecipt.makeTransaction();
 
     res.redirect("/home?userId=" + userId + "&accountId=" + accountId);
   } catch (error) {
@@ -106,16 +116,16 @@ const makePayment = async (req, res) => {
     const recieverCurrentBalance = parseFloat(receiverAccount.balance);
     const reciverUpdatedBalance = recieverCurrentBalance + amount;
     const senderUpdatedBalance = currentSenderBalance - amount;
-    try{
+    try {
       await db
-      .getDb()
-      .collection("Accounts")
-      .updateOne(
-        { accountNumber:receiverAccountNumber },
-        { $set: { balance: reciverUpdatedBalance } }
-      );
-    } catch(error){
-      console.log("Error updating reciever balance",error);
+        .getDb()
+        .collection("Accounts")
+        .updateOne(
+          { accountNumber: receiverAccountNumber },
+          { $set: { balance: reciverUpdatedBalance } }
+        );
+    } catch (error) {
+      console.log("Error updating reciever balance", error);
     }
     await db
       .getDb()
@@ -124,16 +134,49 @@ const makePayment = async (req, res) => {
         { _id: new ObjectId(senderAccountId) },
         { $set: { balance: senderUpdatedBalance } }
       );
-    
+    const transactionData = new Transaction(
+      senderAccountId,
+      "Payment",
+      amount,
+      new Date(),
+      senderAccount.accountNumber,
+      receiverAccountNumber
+    );
+    transactionData.makeTransaction();
     res.redirect("/home?userId=" + userId + "&accountId=" + senderAccountId);
   } catch (error) {
     console.error("Error depositing money:", error);
     res.status(500).send("Internal Server Error");
   }
 };
+const getTransactions = async (req, res) => {
+  const userId = req.query.userId;
+  const accountId = req.query.accountId;
+  const userData = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ _id: new ObjectId(userId) });
+  if (!userData) {
+    res.redirect("/login");
+  }
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ _id: new ObjectId(accountId) });
+  if (!accountDetails) {
+    res.redirect("/login");
+  }
+  const transactions = await Transaction.getTransactionsByAccount(accountId);
+  res.render("customer/transactions", {
+    userData: userData,
+    accountDetails: accountDetails,
+    transactions:transactions
+  });
+};
 module.exports = {
   getDepositMoney,
   depositMoney,
   getPaymentPage,
   makePayment,
+  getTransactions
 };

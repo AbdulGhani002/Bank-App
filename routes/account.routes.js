@@ -11,4 +11,5 @@ router.post('/deposit', accountController.depositMoney);
 router.get('/pay', accountController.getPaymentPage);
 router.post('/pay', accountController.makePayment);
 
+router.get('/transactions' , accountController.getTransactions);
 module.exports = router;
