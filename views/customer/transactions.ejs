@@ -1,13 +1,14 @@
 
 <%- include('../shared/includes/head' , {title:"Home- MoneyHub"})%>
+<link rel="stylesheet" href="styles/transaction-history.css">
 </head>
 <body>
 <%- include("../shared/includes/header")%>
 <main>
-    <h1>Transactions History</h1>
+    <h1 id="transaction-heading">Transactions History</h1>
     <ul>
         <% for (let transaction of transactions) { %>
-            <li>
+            <li class="transaction-item">
                 <h3><%= transaction.transactionType %></h3>
                 <p>Amount: <%= transaction.amount %></p>
                 <p>Transaction Date: <%= transaction.date %></p>

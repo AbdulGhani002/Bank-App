@@ -1,0 +1,47 @@
+
+li.transaction-item {
+    background: linear-gradient(45deg, var(--color-primary-400), var(--color-primary-700));
+    color: var(--color-primary-50);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    margin-top: 1.25rem;
+  }
+  
+
+  li.transaction-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  li.transaction-item {
+    animation: slideIn 0.5s ease-in-out;
+  }
+
+  li.transaction-item a {
+    color: var(--color-primary-50);
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  li.transaction-item a:hover {
+    color: var(--color-primary-100);
+  }
+  
