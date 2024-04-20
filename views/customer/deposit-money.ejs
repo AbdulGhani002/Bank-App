@@ -1,4 +1,3 @@
-
 <%- include('../shared/includes/head' , {title:"Home- MoneyHub"})%>
 <link rel="stylesheet" href="/styles/auth.css">
 </head>
@@ -6,12 +5,9 @@
 <%- include("../shared/includes/header")%>
 <main>
     <h1>Add Amount</h1>
-    <form method="POST" action="/pay">
+    <form method="POST" action="/deposit">
         <label for="deposit-money">
             <input type="number" alt="amount"  name="amount">
-        </label>
-        <label for="recieverAccountNumber">
-            Reciever Account Number<input type="text" alt="account number" name="recieverAccountNumber">
         </label>
         <input type="hidden" name="userId" value="<%=userData._id%>">
         <input type="hidden" name="accountId" value="<%=accountDetails._id%>">

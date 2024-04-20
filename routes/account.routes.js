@@ -8,4 +8,7 @@ router.get('/deposit', accountController.getDepositMoney);
 
 router.post('/deposit', accountController.depositMoney);
 
+router.get('/pay', accountController.getPaymentPage);
+router.post('/pay', accountController.makePayment);
+
 module.exports = router;
