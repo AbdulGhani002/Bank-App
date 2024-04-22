@@ -13,6 +13,7 @@
                 <p>Amount: <%= transaction.amount %></p>
                 <p>Transaction Date: <%= transaction.date %></p>
                 <p>Receiver Account Number: <%= transaction.receiverAccountNumber %></p>
+                <a href="/transactions/<%=transaction._id%>?userId=<%=userData._id%>&accountId=<%=accountDetails._id%>">See Details</a>
             </li>
         <% } %>
         

@@ -1,0 +1,20 @@
+<%- include('../shared/includes/head', { title: "Home- MoneyHub" }) %>
+<link rel="stylesheet" href="/styles/transaction-details.css">
+</head>
+<body>
+    <main>
+        <h1 id="transaction-heading">Transaction Details</h1>
+        <div id="transaction-details">
+            <h3><%= transaction.transactionType %></h3>
+            <p><strong>Amount:</strong> <%= transaction.amount %></p>
+            <p><strong>Transaction Date:</strong> <%= transaction.date %></p>
+            <p><strong>Receiver Account Number:</strong> <%= transaction.receiverAccountNumber %></p>
+            <% if (transaction.transactionType === "Payment") { %>
+            <p><strong>Receiver Name:</strong> <%= receiverUser.name %></p>
+            <p><strong>Receiver Email:</strong> <%= receiverUser.email %></p>
+            <% } %>
+        </div>
+    </main>
+    <%- include("../shared/includes/footer") %>
+</body>
+</html>

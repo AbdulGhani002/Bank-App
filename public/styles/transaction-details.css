@@ -1,0 +1,137 @@
+body {
+    background-color: var(--color-gray-900);
+    color: var(--color-primary-500-contrast);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    width: 50%;
+    margin: auto;
+    margin-top: 8rem;
+    background-color: var(--color-gray-1000);
+    border-radius: var(--border-radius-medium);
+    text-align: center;
+    box-shadow: var(--shadow-medium);
+}
+
+#transaction-heading {
+    background-color: var(--color-primary-400);
+    color: var(--color-primary-500-contrast);
+    padding: var(--space-4);
+    font-size: 2rem;
+    border-bottom: 2px solid var(--color-primary-200);
+}
+
+#transaction-details {
+    padding: var(--space-4);
+    text-align: left;
+}
+
+#transaction-details h3 {
+    color: var(--color-primary-700);
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+}
+
+#transaction-details p {
+    margin-bottom: var(--space-2);
+}
+
+#transaction-details p strong {
+    font-weight: bold;
+}
+
+.alert {
+    border-radius: var(--border-radius-small);
+    background-color: var(--color-error-100);
+    color: var(--color-error-500);
+    padding: var(--space-4);
+}
+
+.alert h2 {
+    font-size: 1rem;
+    margin: var(--space-2) 0;
+    text-transform: uppercase;
+}
+
+.alert p {
+    margin: var(--space-2) 0;
+}
+
+ul {
+    list-style-type: none;
+}
+
+/* Hover Effects */
+main:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+main a#new-account-button,
+button {
+    color: var(--color-primary-500-contrast);
+    text-decoration: none;
+    padding: var(--space-2) var(--space-4);
+    border: none;
+    margin-bottom: var(--space-4);
+    background-color: var(--color-primary-900);
+    border-radius: var(--border-radius-medium);
+}
+
+main a#new-account-button:hover,
+button:hover {
+    background-color: var(--color-primary-700);
+}
+
+main p a:hover {
+    color: var(--color-primary-700);
+}
+
+header {
+    background: linear-gradient(
+        60deg,
+        var(--color-gray-1000),
+        var(--color-gray-900)
+    );
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--space-4);
+}
+
+header h2 a {
+    color: var(--color-primary-500-contrast);
+    text-decoration: none;
+    font-size: 2rem;
+}
+
+header nav ul {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    list-style: none;
+}
+
+header nav ul li {
+    margin: var(--space-2);
+    padding: var(--space-1);
+}
+
+header nav ul li a {
+    color: var(--color-primary-500-contrast);
+    text-decoration: none;
+}
+
+header #yellow-background-logo {
+    background-color: var(--color-primary-900);
+    color: var(--color-gray-900);
+    border-radius: var(--border-radius-small);
+    padding-left: var(--space-1);
+}
+
+header nav ul li a:hover {
+    color: var(--color-primary-900);
+}
