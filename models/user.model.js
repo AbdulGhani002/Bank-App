@@ -23,9 +23,11 @@ class User {
       const existingUser = await this.getUserByEmail(this.email);
       return !!existingUser;
     } catch (error) {
-      throw new Error("Error checking if user exists");
+      console.error("Error checking if user exists:", error);
+      throw error; 
     }
   }
+  
 
   async signup() {
     try {
