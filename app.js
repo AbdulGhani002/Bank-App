@@ -23,7 +23,9 @@ app.use(accountRoutes);
 app.use(errorHandlerMiddleware);
 db.connectToDatabase()
   .then(() => {
-    app.listen(process.env.PORT || 5500);
+    app.listen(process.env.PORT || 5500,'0.0.0.0',function(){
+      console.log("Server is running on port 3000");
+    });
   })
   .catch((error) => {
     console.log(error);
