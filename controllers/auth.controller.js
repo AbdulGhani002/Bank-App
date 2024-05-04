@@ -5,20 +5,22 @@ const logger = require("../utils/logger");
 
 function getSignup(req, res) {
   if(req.query.error === "User already exists. Please login." || req.query.error === "Error creating user. Please try again." || req.query.error === "Error creating account. Please try again." || req.query.error === "Invalid input. Please try again." || req.query.error === "Passwords do not match. Please try again."){
-    return res.render("customer/auth/create-account", {error: req.query.error});
+    return res.render("customer/auth/create-account", {error: req.query.error , email:req.query.email, password:req.query.password, confirmPassword:req.query.confirmPassword, fullname:req.query.fullname, birthday:req.query.birthday, street:req.query.street, city:req.query.city, postalCode:req.query.postalCode});
   }
-  res.render("customer/auth/create-account" ,{error: null});
+  res.render("customer/auth/create-account" ,{error: null , email:null, password:null, confirmPassword:null, fullname:null, birthday:null, street:null, city:null, postalCode:null});
 }
 
 function getLogin(req, res) {
   if(req.query.error === "Invalid email or password. Please try again."|| req.query.error === "Invalid email or password. Please try again."){
-    return res.render("customer/auth/login", {error: req.query.error});
+    return res.render("customer/auth/login", {error: req.query.error, email:req.query.email, password:req.query.password});
   }
-  res.render("customer/auth/login" , {error: null});
+  res.render("customer/auth/login" , {error: null, email:null, password:null});
 }
 
 async function login(req, res, next) {
-  const user = new User(req.body.email, req.body.password);
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = new User(email, password);
   let existingUser;
   try {
     existingUser = await user.getUserByEmail(user.email);
@@ -28,7 +30,7 @@ async function login(req, res, next) {
   }
 
   if (!existingUser) {
-    res.redirect("/login?error=Invalid email or password. Please try again.");
+    res.redirect("/login?error=Invalid email or password. Please try again.&email=" + email+"&password=" + password);
     return;
   }
 
@@ -36,7 +38,7 @@ async function login(req, res, next) {
     existingUser.password
   );
   if (!passwordIsCorrect) {
-    res.redirect("/login?error=Invalid email or password. Please try again.");
+    res.redirect("/login?error=Invalid email or password. Please try again.&"+"email=" + email+"&password=" + password);
     return;
   }
 
@@ -83,21 +85,21 @@ async function createUserAndAccount(req, res) {
         city
       )
     ) {
-      res.redirect("/signup?error=Invalid input. Please try again.");
+      res.redirect("/signup?error=Invalid input. Please try again.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
       return;
     }
     if (!validation.passwordIsConfirmed(password, confirmPassword)) {
-      res.redirect("/signup?error=Passwords do not match. Please try again.");
+      res.redirect("/signup?error=Passwords do not match. Please try again.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
       return;
     }
     const userExists = await newUser.userAlreadyExists();
     if (userExists) {
-      return res.redirect("/signup?error=User already exists. Please login.");
+      return res.redirect("/signup?error=User already exists. Please login.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
     }
 
     const signupResult = await newUser.signup();
     if (!signupResult.success) {
-      return res.redirect("/signup?error=Error creating user. Please try again.");
+      return res.redirect("/signup?error=Error creating user. Please try again.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
     }
 
     const createdUser = await newUser.getUserByEmail(email);
@@ -109,12 +111,12 @@ async function createUserAndAccount(req, res) {
 
       return res.redirect("/login");
     } else {
-      return res.redirect("/signup?error=Error creating account. Please try again.");
+      return res.redirect("/signup?error=Error creating account. Please try again.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
     }
   } catch (error) {
     logger.error("Error during user and account creation:", error);
 
-    return res.redirect("/signup?error=Error creating user. Please try again.");
+    return res.redirect("/signup?error=Error creating user. Please try again.&email=" + email+"&password=" + password+"&confirmPassword=" + confirmPassword+"&fullname=" + fullname+"&birthday=" + birthday+"&street=" + street+"&city=" + city+"&postalCode=" + postalCode);
   }
 }
 module.exports = {
