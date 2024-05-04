@@ -22,3 +22,13 @@ hr {
   width: 60%;
   color: var(--color-primary-900);
 }
+.error {
+  color: #D8000C; 
+  border-radius: 5px; 
+  padding: 1rem 1rem; 
+  font-size: 1.25rem;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+

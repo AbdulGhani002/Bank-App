@@ -7,6 +7,9 @@
     <h1>Login</h1>
 
     <form action="/login" method="POST">
+        <% if(error){ %>
+            <p class="error"><%= error %></p>
+        <%}%>
         <label for="email">Email: </label>
         <input type="email" name="email" id="email" required>
         <label for="password">Password: </label>

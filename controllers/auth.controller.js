@@ -4,11 +4,17 @@ const Account = require("../models/account.model");
 const logger = require("../utils/logger");
 
 function getSignup(req, res) {
-  res.render("customer/auth/create-account");
+  if(req.query.error === "User already exists. Please login." || req.query.error === "Error creating user. Please try again." || req.query.error === "Error creating account. Please try again." || req.query.error === "Invalid input. Please try again." || req.query.error === "Passwords do not match. Please try again."){
+    return res.render("customer/auth/create-account", {error: req.query.error});
+  }
+  res.render("customer/auth/create-account" ,{error: null});
 }
 
 function getLogin(req, res) {
-  res.render("customer/auth/login");
+  if(req.query.error === "Invalid email or password. Please try again."|| req.query.error === "Invalid email or password. Please try again."){
+    return res.render("customer/auth/login", {error: req.query.error});
+  }
+  res.render("customer/auth/login" , {error: null});
 }
 
 async function login(req, res, next) {
@@ -22,7 +28,7 @@ async function login(req, res, next) {
   }
 
   if (!existingUser) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
     return;
   }
 
@@ -30,7 +36,7 @@ async function login(req, res, next) {
     existingUser.password
   );
   if (!passwordIsCorrect) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
     return;
   }
 
@@ -77,21 +83,21 @@ async function createUserAndAccount(req, res) {
         city
       )
     ) {
-      res.redirect("/signup");
+      res.redirect("/signup?error=Invalid input. Please try again.");
       return;
     }
     if (!validation.passwordIsConfirmed(password, confirmPassword)) {
-      res.redirect("/signup");
+      res.redirect("/signup?error=Passwords do not match. Please try again.");
       return;
     }
     const userExists = await newUser.userAlreadyExists();
     if (userExists) {
-      return res.redirect("/signup");
+      return res.redirect("/signup?error=User already exists. Please login.");
     }
 
     const signupResult = await newUser.signup();
     if (!signupResult.success) {
-      return res.redirect("/signup");
+      return res.redirect("/signup?error=Error creating user. Please try again.");
     }
 
     const createdUser = await newUser.getUserByEmail(email);
@@ -103,12 +109,12 @@ async function createUserAndAccount(req, res) {
 
       return res.redirect("/login");
     } else {
-      return res.redirect("/signup");
+      return res.redirect("/signup?error=Error creating account. Please try again.");
     }
   } catch (error) {
     logger.error("Error during user and account creation:", error);
 
-    return res.redirect("/signup");
+    return res.redirect("/signup?error=Error creating user. Please try again.");
   }
 }
 module.exports = {

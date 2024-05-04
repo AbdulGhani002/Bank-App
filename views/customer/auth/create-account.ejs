@@ -7,6 +7,9 @@
     <h1>Create New Account</h1>
 
     <form action="/signup" method="POST">
+        <% if(error){ %>
+            <p class="error"><%= error %></p>
+        <%}%>
         <label for="fullname">Full Name: </label>
         <input type="text" name="fullname"  id="fullname" required>
         <label for="birthday">Date of Birth: </label>
