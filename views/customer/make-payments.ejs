@@ -7,6 +7,9 @@
 <main>
     <h1>Add Amount</h1>
     <form method="POST" action="/pay">
+        <% if(error){ %>
+            <p class="error"><%= error %></p>
+        <%}%>
         <label for="deposit-money">
             <input type="number" alt="amount"  name="amount">
         </label>

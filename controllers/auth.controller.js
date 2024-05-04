@@ -4,9 +4,16 @@ const validation = require("../utils/validation");
 const Account = require("../models/account.model");
 const logger = require("../utils/logger");
 const jwt = require("jsonwebtoken");
-const authMiddleware = require("../middlewares/auth-middleware");
 
 function getSignup(req, res) {
+  const encryptedExistingUserId = req.cookies.existingUserId;
+  const encryptedExistingAccountId = req.cookies.existingAccountId;
+  let userData;
+  let accountDetails;
+  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
+    userData = null;
+    accountDetails = null;
+  }
   if (
     req.query.error === "User already exists. Please login." ||
     req.query.error === "Error creating user. Please try again." ||
@@ -24,6 +31,7 @@ function getSignup(req, res) {
       street: req.query.street,
       city: req.query.city,
       postalCode: req.query.postalCode,
+      userData,accountDetails
     });
   }
   res.render("customer/auth/create-account", {
@@ -36,24 +44,39 @@ function getSignup(req, res) {
     street: null,
     city: null,
     postalCode: null,
+    userData,accountDetails
   });
 }
 
 function getLogin(req, res) {
+  const encryptedExistingUserId = req.cookies.existingUserId;
+  const encryptedExistingAccountId = req.cookies.existingAccountId;
+  let userData;
+  let accountDetails;
+  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
+    userData = null;
+    accountDetails = null;
+  }
   if (
     req.query.error === "Invalid email or password. Please try again." ||
-    req.query.error === "Invalid email or password. Please try again."
+    req.query.error === "Invalid email or password. Please try again." ||
+    req.query.successMessage === "Account created successfully. Please login."
   ) {
     return res.render("customer/auth/login", {
       error: req.query.error,
       email: req.query.email,
       password: req.query.password,
+      successMessage:req.query.successMessage,
+      userData,accountDetails
     });
   }
   res.render("customer/auth/login", {
     error: null,
     email: null,
     password: null,
+    successMessage:null,
+    userData,
+    accountDetails
   });
 }
 
@@ -104,19 +127,20 @@ async function login(req, res, next) {
     maxAge: 3 * 24 * 60 * 60 * 1000,
     httpOnly: true,
   });
-  authMiddleware.requireAuth(req, res, () =>{
-    getHomePage(req, res, existingUser, existingAccount)
-});
-   
+  const existingUserId = CryptoJs.AES.encrypt(
+    existingUser.userId,
+    process.env.SECRET_KEY
+  ).toString();
+  const existingAccountId = CryptoJs.AES.encrypt(
+    existingAccount.accountId,
+    process.env.SECRET_KEY
+  ).toString();
+  res.cookie("existingUserId", JSON.stringify(existingUserId));
+  res.cookie("existingAccountId", JSON.stringify(existingAccountId));
+
+  res.redirect("/home");
 }
 
-const getHomePage = (req, res, existingUser, existingAccount) => {
-  const existingUserId = CryptoJs.AES.encrypt(existingUser.userId, process.env.SECRET_KEY).toString();
-  const existingAccountId = CryptoJs.AES.encrypt(existingAccount.accountId, process.env.SECRET_KEY).toString();
-  res.cookie('existingUserId', JSON.stringify(existingUserId));
-  res.cookie('existingAccountId', JSON.stringify(existingAccountId));
-  res.redirect("/home");
-};
 
 async function createUserAndAccount(req, res) {
   const {
@@ -242,7 +266,7 @@ async function createUserAndAccount(req, res) {
 
       await newAccount.createBankAccount();
 
-      return res.redirect("/login");
+      return res.redirect("/login?successMessage=Account created successfully. Please login.");
     } else {
       return res.redirect(
         "/signup?error=Error creating account. Please try again.&email=" +
@@ -291,9 +315,22 @@ const createToken = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+async function logout(req, res) {
+  res.cookie("existingUserId", "", {
+    maxAge: 1,
+  });
+  res.cookie("existingAccountId", "", {
+    maxAge: 1,
+  });
+  res.cookie("jwt", "", {
+    maxAge: 1,
+  });
+  res.redirect("/login");
+}
 module.exports = {
   getSignup,
   getLogin,
   login,
   createUserAndAccount,
+  logout
 };

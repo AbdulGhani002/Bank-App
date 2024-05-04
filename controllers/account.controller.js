@@ -1,40 +1,46 @@
-const db = require("../data/database");
 const mongodb = require("mongodb");
+const CryptoJS = require("crypto-js");
+const db = require("../data/database");
 const ObjectId = mongodb.ObjectId;
 const Transaction = require("../models/transaction.model");
+const { error } = require("console");
 
 const getDepositMoney = async (req, res) => {
-  const userId = req.query.userId;
-  const accountId = req.query.accountId;
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ _id: new ObjectId(userId) });
+  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+  const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+  const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+  const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
+  const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
   if (!userData) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
   }
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ _id: new ObjectId(accountId) });
   if (!accountDetails) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
+  }
+  if(req.query.error){
+    return res.render("customer/deposit-money", {
+      userData: userData,
+      accountDetails: accountDetails,
+      error:req.query.error
+    });
   }
   res.render("customer/deposit-money", {
     userData: userData,
     accountDetails: accountDetails,
+    error:null
   });
 };
 const depositMoney = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    const userId = req.body.userId;
-    const accountId = req.body.accountId;
-
-    const account = await db
-      .getDb()
-      .collection("Accounts")
-      .findOne({ _id: new ObjectId(accountId) });
+    
+    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
+    const account = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
 
     if (!account) {
       return res.status(404).send("Account not found");
@@ -46,11 +52,11 @@ const depositMoney = async (req, res) => {
       .getDb()
       .collection("Accounts")
       .updateOne(
-        { _id: new ObjectId(accountId) },
+        { _id: new ObjectId(account._id) },
         { $set: { balance: updatedBalance } }
       );
     const transactionRecipt = new Transaction(
-      accountId,
+      account._id,
       "Deposit",
       amount,
       new Date(),
@@ -59,7 +65,7 @@ const depositMoney = async (req, res) => {
     );
     transactionRecipt.makeTransaction();
 
-    res.redirect("/home?userId=" + userId + "&accountId=" + accountId);
+    res.redirect("/home");
   } catch (error) {
     console.error("Error depositing money:", error);
     res.status(500).send("Internal Server Error");
@@ -67,50 +73,54 @@ const depositMoney = async (req, res) => {
 };
 
 const getPaymentPage = async (req, res) => {
-  const userId = req.query.userId;
-  const accountId = req.query.accountId;
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ _id: new ObjectId(userId) });
+  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
+    const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
   if (!userData) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
   }
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ _id: new ObjectId(accountId) });
   if (!accountDetails) {
-    res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
+  }
+  if(req.query.error){
+    return res.render("customer/make-payments", {
+      userData: userData,
+      accountDetails: accountDetails,
+      error:req.query.error
+    });
   }
   res.render("customer/make-payments", {
     userData: userData,
     accountDetails: accountDetails,
+    error:null
   });
 };
 const makePayment = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    const userId = req.body.userId;
-    const senderAccountId = req.body.accountId;
+    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const senderAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    const senderAccount = await db.getDb().collection('Accounts').findOne({accountId:senderAccountId});
     const receiverAccountNumber = req.body.recieverAccountNumber;
-    const senderAccount = await db
-      .getDb()
-      .collection("Accounts")
-      .findOne({ _id: new ObjectId(senderAccountId) });
+
     const receiverAccount = await db
       .getDb()
       .collection("Accounts")
       .findOne({ accountNumber: receiverAccountNumber });
     if (!receiverAccount) {
-      return res.status(404).send("Receiver Account not found");
+      res.redirect('/pay?error=Invalid Account Number');
     }
     if (!senderAccount) {
-      return res.status(404).send("Your Account not found");
+      res.redirect('/pay?error=Account Not Found');
     }
     const currentSenderBalance = parseFloat(senderAccount.balance);
     if (currentSenderBalance < amount) {
-      return res.status(400).send("Insufficient Balance");
+      res.redirect('/pay?error=Insufficient Balance');
     }
     const recieverCurrentBalance = parseFloat(receiverAccount.balance);
     const reciverUpdatedBalance = recieverCurrentBalance + amount;
@@ -130,7 +140,7 @@ const makePayment = async (req, res) => {
       .getDb()
       .collection("Accounts")
       .updateOne(
-        { _id: new ObjectId(senderAccountId) },
+        { accountId: senderAccountId },
         { $set: { balance: senderUpdatedBalance } }
       );
     const transactionData = new Transaction(
@@ -142,7 +152,7 @@ const makePayment = async (req, res) => {
       receiverAccountNumber
     );
     transactionData.makeTransaction();
-    res.redirect("/home?userId=" + userId + "&accountId=" + senderAccountId);
+    res.redirect("/home");
   } catch (error) {
     console.error("Error depositing money:", error);
     res.status(500).send("Internal Server Error");

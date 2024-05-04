@@ -10,6 +10,9 @@
         <% if(error){ %>
             <p class="error"><%= error %></p>
         <%}%>
+        <%if(successMessage){%>
+            <p class="success"><%=successMessage%></p>
+            <%}%>
         <label for="email">Email: </label>
         <input type="email" name="email" value="<%=email%>" id="email" required>
         <label for="password">Password: </label>
