@@ -6,7 +6,7 @@ const baseRoutes = require("./routes/base.routes");
 const authRoutes = require("./routes/auth.routes");
 const accountRoutes = require("./routes/account.routes");
 const cookieParser = require("cookie-parser");
-const {checkUser,checkAccount} = require("./middlewares/auth-middleware");
+const {checkUser} = require("./middlewares/auth-middleware");
 
 const errorHandlerMiddleware = require("./middlewares/error-handler");
 
@@ -19,7 +19,7 @@ app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get("*",checkUser,checkAccount);
+app.get("*",checkUser);
 app.use(baseRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);

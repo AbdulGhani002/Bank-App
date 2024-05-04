@@ -1,3 +1,4 @@
+const CryptoJs = require('crypto-js')
 const User = require("../models/user.model");
 const validation = require("../utils/validation");
 const Account = require("../models/account.model");
@@ -98,31 +99,22 @@ async function login(req, res, next) {
   } catch (error) {
     console.log(error);
   }
-  const userToken = createToken(existingUser);
-  const accountToken = createToken(existingAccount);
-  res.cookie("jwtUserId", userToken, {
-    maxAge: 3 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-  });
-  res.cookie("jwtAccountId", accountToken, {
+  const token = createToken(existingUser.userId);
+  res.cookie("jwt", token, {
     maxAge: 3 * 24 * 60 * 60 * 1000,
     httpOnly: true,
   });
   authMiddleware.requireAuth(req, res, () =>{
     getHomePage(req, res, existingUser, existingAccount)
 });
-    // res.redirect("/home");
+   
 }
 
-// const getHomePage = (req, res, existingUser, existingAccount) => {
-//   res.render("customer/home-page", {
-//     userData: existingUser,
-//     accountDetails: existingAccount,
-//   });
-// };
 const getHomePage = (req, res, existingUser, existingAccount) => {
-  res.cookie('existingUser', JSON.stringify(existingUser));
-  res.cookie('existingAccount', JSON.stringify(existingAccount));
+  const existingUserId = CryptoJs.AES.encrypt(existingUser.userId, process.env.SECRET_KEY).toString();
+  const existingAccountId = CryptoJs.AES.encrypt(existingAccount.accountId, process.env.SECRET_KEY).toString();
+  res.cookie('existingUserId', JSON.stringify(existingUserId));
+  res.cookie('existingAccountId', JSON.stringify(existingAccountId));
   res.redirect("/home");
 };
 
@@ -294,8 +286,8 @@ async function createUserAndAccount(req, res) {
     );
   }
 }
-const createToken = (user) => {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+const createToken = (id) => {
+  return jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
