@@ -113,14 +113,17 @@ const makePayment = async (req, res) => {
       .collection("Accounts")
       .findOne({ accountNumber: receiverAccountNumber });
     if (!receiverAccount) {
-      res.redirect('/pay?error=Invalid Account Number');
+      return res.redirect('/pay?error=Invalid Account Number');
     }
     if (!senderAccount) {
-      res.redirect('/pay?error=Account Not Found');
+      return res.redirect('/pay?error=Account Not Found');
+    }
+    if(senderAccount.accountNumber === receiverAccountNumber){
+      return res.redirect('/pay?error=You cannot send money to yourself');
     }
     const currentSenderBalance = parseFloat(senderAccount.balance);
     if (currentSenderBalance < amount) {
-      res.redirect('/pay?error=Insufficient Balance');
+      return res.redirect('/pay?error=Insufficient Balance');
     }
     const recieverCurrentBalance = parseFloat(receiverAccount.balance);
     const reciverUpdatedBalance = recieverCurrentBalance + amount;
