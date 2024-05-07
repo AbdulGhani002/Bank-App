@@ -1,4 +1,4 @@
-const CryptoJs = require('crypto-js')
+const CryptoJs = require("crypto-js");
 const User = require("../models/user.model");
 const validation = require("../utils/validation");
 const Account = require("../models/account.model");
@@ -31,7 +31,8 @@ function getSignup(req, res) {
       street: req.query.street,
       city: req.query.city,
       postalCode: req.query.postalCode,
-      userData,accountDetails
+      userData,
+      accountDetails,
     });
   }
   res.render("customer/auth/create-account", {
@@ -44,7 +45,8 @@ function getSignup(req, res) {
     street: null,
     city: null,
     postalCode: null,
-    userData,accountDetails
+    userData,
+    accountDetails,
   });
 }
 
@@ -60,23 +62,26 @@ function getLogin(req, res) {
   if (
     req.query.error === "Invalid email or password. Please try again." ||
     req.query.error === "Invalid email or password. Please try again." ||
-    req.query.successMessage === "Account created successfully. Please login."
+    req.query.successMessage ===
+      "Account created successfully. Please login." ||
+    req.query.error === "Login to continue"
   ) {
     return res.render("customer/auth/login", {
       error: req.query.error,
       email: req.query.email,
       password: req.query.password,
-      successMessage:req.query.successMessage,
-      userData,accountDetails
+      successMessage: req.query.successMessage,
+      userData,
+      accountDetails,
     });
   }
   res.render("customer/auth/login", {
     error: null,
     email: null,
     password: null,
-    successMessage:null,
+    successMessage: null,
     userData,
-    accountDetails
+    accountDetails,
   });
 }
 
@@ -140,7 +145,6 @@ async function login(req, res, next) {
 
   res.redirect("/home");
 }
-
 
 async function createUserAndAccount(req, res) {
   const {
@@ -266,7 +270,9 @@ async function createUserAndAccount(req, res) {
 
       await newAccount.createBankAccount();
 
-      return res.redirect("/login?successMessage=Account created successfully. Please login.");
+      return res.redirect(
+        "/login?successMessage=Account created successfully. Please login."
+      );
     } else {
       return res.redirect(
         "/signup?error=Error creating account. Please try again.&email=" +
@@ -332,5 +338,5 @@ module.exports = {
   getLogin,
   login,
   createUserAndAccount,
-  logout
+  logout,
 };

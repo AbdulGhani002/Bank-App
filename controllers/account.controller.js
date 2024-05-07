@@ -8,39 +8,65 @@ const { error } = require("console");
 const getDepositMoney = async (req, res) => {
   const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
   const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-  const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-  const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-  const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
-  const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
+  const existingUserId = CryptoJS.AES.decrypt(
+    encryptedExistingUserId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const existingAccountId = CryptoJS.AES.decrypt(
+    encryptedExistingAccountId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const userData = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ userId: existingUserId });
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ accountId: existingAccountId });
   if (!userData) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
   if (!accountDetails) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
-  if(req.query.error){
+  if (req.query.error) {
     return res.render("customer/deposit-money", {
       userData: userData,
       accountDetails: accountDetails,
-      error:req.query.error
+      error: req.query.error,
     });
   }
   res.render("customer/deposit-money", {
     userData: userData,
     accountDetails: accountDetails,
-    error:null
+    error: null,
   });
 };
 const depositMoney = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    
+
     const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
-    const account = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
+    const encryptedExistingAccountId = JSON.parse(
+      req.cookies.existingAccountId
+    );
+    const existingUserId = CryptoJS.AES.decrypt(
+      encryptedExistingUserId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    const existingAccountId = CryptoJS.AES.decrypt(
+      encryptedExistingAccountId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    const userData = await db
+      .getDb()
+      .collection("Users")
+      .findOne({ userId: existingUserId });
+    const account = await db
+      .getDb()
+      .collection("Accounts")
+      .findOne({ accountId: existingAccountId });
 
     if (!account) {
       return res.status(404).send("Account not found");
@@ -73,39 +99,70 @@ const depositMoney = async (req, res) => {
 };
 
 const getPaymentPage = async (req, res) => {
-  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+  try{
+    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
     const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const existingAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const userData = await db.getDb().collection('Users').findOne({userId: existingUserId});
-    const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:existingAccountId});
+    const existingUserId = CryptoJS.AES.decrypt(
+      encryptedExistingUserId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    const existingAccountId = CryptoJS.AES.decrypt(
+      encryptedExistingAccountId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+  } catch(error){
+    console.log(error);
+    return res.redirect("/login?error=Login to continue");
+  }
+  const userData = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ userId: existingUserId });
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ accountId: existingAccountId });
   if (!userData) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
   if (!accountDetails) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
-  if(req.query.error){
+  if (req.query.error) {
     return res.render("customer/make-payments", {
       userData: userData,
       accountDetails: accountDetails,
-      error:req.query.error
+      error: req.query.error,
     });
   }
   res.render("customer/make-payments", {
     userData: userData,
     accountDetails: accountDetails,
-    error:null
+    error: null,
   });
 };
 const makePayment = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-    const existingUserId = CryptoJS.AES.decrypt(encryptedExistingUserId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const senderAccountId = CryptoJS.AES.decrypt(encryptedExistingAccountId, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    const senderAccount = await db.getDb().collection('Accounts').findOne({accountId:senderAccountId});
+      const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+      const encryptedExistingAccountId = JSON.parse(
+        req.cookies.existingAccountId
+      );
+      if(!encryptedExistingUserId || !encryptedExistingAccountId){
+        return res.redirect("/pay?error=Error Occured! Try Again!!");
+      }
+      const existingUserId = CryptoJS.AES.decrypt(
+        encryptedExistingUserId,
+        process.env.SECRET_KEY
+      ).toString(CryptoJS.enc.Utf8);
+      const senderAccountId = CryptoJS.AES.decrypt(
+        encryptedExistingAccountId,
+        process.env.SECRET_KEY
+      ).toString(CryptoJS.enc.Utf8);
+    const senderAccount = await db
+      .getDb()
+      .collection("Accounts")
+      .findOne({ accountId: senderAccountId });
     const receiverAccountNumber = req.body.recieverAccountNumber;
 
     const receiverAccount = await db
@@ -113,17 +170,17 @@ const makePayment = async (req, res) => {
       .collection("Accounts")
       .findOne({ accountNumber: receiverAccountNumber });
     if (!receiverAccount) {
-      return res.redirect('/pay?error=Invalid Account Number');
+      return res.redirect("/pay?error=Invalid Account Number");
     }
     if (!senderAccount) {
-      return res.redirect('/pay?error=Account Not Found');
+      return res.redirect("/pay?error=Account Not Found");
     }
-    if(senderAccount.accountNumber === receiverAccountNumber){
-      return res.redirect('/pay?error=You cannot send money to yourself');
+    if (senderAccount.accountNumber === receiverAccountNumber) {
+      return res.redirect("/pay?error=You cannot send money to yourself");
     }
     const currentSenderBalance = parseFloat(senderAccount.balance);
     if (currentSenderBalance < amount) {
-      return res.redirect('/pay?error=Insufficient Balance');
+      return res.redirect("/pay?error=Insufficient Balance");
     }
     const recieverCurrentBalance = parseFloat(receiverAccount.balance);
     const reciverUpdatedBalance = recieverCurrentBalance + amount;
