@@ -99,6 +99,8 @@ const depositMoney = async (req, res) => {
 };
 
 const getPaymentPage = async (req, res) => {
+  let userData;
+  let accountDetails;
   try {
     const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
     const encryptedExistingAccountId = JSON.parse(
@@ -112,15 +114,11 @@ const getPaymentPage = async (req, res) => {
       encryptedExistingAccountId,
       process.env.SECRET_KEY
     ).toString(CryptoJS.enc.Utf8);
-  } catch (error) {
-    console.log(error);
-    return res.redirect("/login?error=Login to continue");
-  }
-  const userData = await db
+    userData = await db
     .getDb()
     .collection("Users")
     .findOne({ userId: existingUserId });
-  const accountDetails = await db
+  accountDetails = await db
     .getDb()
     .collection("Accounts")
     .findOne({ accountId: existingAccountId });
@@ -136,6 +134,10 @@ const getPaymentPage = async (req, res) => {
       accountDetails: accountDetails,
       error: req.query.error,
     });
+  }
+  } catch (error) {
+    console.log(error);
+    return res.redirect("/login?error=Login to continue");
   }
   res.render("customer/make-payments", {
     userData: userData,
