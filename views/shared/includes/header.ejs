@@ -1,7 +1,7 @@
 <header>
   <section>
     <h2>
-      <a href="/" id="page-title"
+      <a href="/home" id="page-title"
         >Money<span id="yellow-background-logo">hub</span></a
       >
     </h2>
@@ -9,12 +9,12 @@
   <section>
     <nav>
       <ul>
+        <% if(userData && accountDetails) { %>
+        <li><a href="/logout">Logout</a></li>
+        <% } else{%>
         <li><a href="/login">Login</a></li>
         <li><a href="/signup">Make new Account</a></li>
-        <% if(userData && accountDetails) { %>
-          <li><a href="/logout">Logout</a></li>
-      <% } %>
-      
+        <%}%>
       </ul>
     </nav>
   </section>

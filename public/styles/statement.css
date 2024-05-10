@@ -1,99 +1,106 @@
-.title{
-    color: white;
+.title {
+  color: white;
 }
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #f7f7f7;
-    color: #333;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  background-color: #f7f7f7;
+  color: #333;
+}
+main {
+  border-radius: 0;
+}
+header,
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
 }
 
-header, footer {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 0;
-    text-align: center;
-}
-
-header h1, footer h1 {
-    font-size: 1.5em;
+header h1,
+footer h1 {
+  font-size: 1.5em;
 }
 
 main {
-    padding: 20px;
+  padding: 20px;
 }
 
 .statement {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .statement-header h2 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
+  font-size: 1.5em;
+  margin-bottom: 20px;
 }
 
 .statement-body table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
 }
 
-.statement-body th, .statement-body td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
+.statement-body th,
+.statement-body td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
 }
 
 .statement-body th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+  background-color: #f2f2f2;
+  font-weight: bold;
 }
 
 .statement-footer {
-    text-align: right;
-    font-style: italic;
+  text-align: right;
+  font-style: italic;
 }
 a#download-button {
-    margin: 2rem 0;
-    padding: .25rem 1.5rem;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    background-color: var(--color-primary-500);
-    border-radius: .25rem;
-  }
-  a#download-button:hover {
-    background-color: var(--color-primary-700);
-  }
+  margin: 2rem 0;
+  padding: 0.25rem 1.5rem;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  background-color: var(--color-primary-500);
+  border-radius: 0.25rem;
+}
+a#download-button:hover {
+  background-color: var(--color-primary-700);
+}
 
 .statement-footer p {
-    font-size: 1em;
-    margin-top: 20px;
+  font-size: 1em;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {
-    .statement-body th, .statement-body td {
-        padding: 10px;
-    }
+  .statement-body th,
+  .statement-body td {
+    padding: 10px;
+  }
 
-    .statement-footer p {
-        font-size: 0.9em;
-    }
+  .statement-footer p {
+    font-size: 0.9em;
+  }
 }
 
 @media (max-width: 576px) {
-    .statement-header h2 {
-        font-size: 1.3em;
-    }
+  .statement-header h2 {
+    font-size: 1.3em;
+  }
 
-    .statement-body th, .statement-body td {
-        padding: 8px;
-    }
+  .statement-body th,
+  .statement-body td {
+    padding: 8px;
+  }
 
-    .statement-footer p {
-        font-size: 0.8em;
-    }
+  .statement-footer p {
+    font-size: 0.8em;
+  }
 }
