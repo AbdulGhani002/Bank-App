@@ -1,0 +1,39 @@
+<%- include('../shared/includes/head' , {title:"Home- MoneyHub"})%>
+<link rel="stylesheet" href="/styles/home-page.css">
+<link rel="stylesheet" href="/styles/statement.css">
+  </head>
+  <body>
+   <%- include("../shared/includes/header")%>
+   <main>
+       <h1 class="title">Financial Statement</h1>
+       <section class="statement">
+        <div class="statement-header">
+            <p>Account Number: <%=accountDetails.accountNumber%></p>
+            <p>Account Holder Name: <%=userData.name%></p>
+            <p>Current Balance: <%=accountDetails.balance%></p>
+
+            <h2>Statement Period: <%=firstTransactionDate%> - <%=lastTransactionDate%></h2>
+        </div>
+        <div class="statement-body">
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+                <%for(const transaction of transactions){%>
+                <tr>
+                    <td><%=transaction.formattedDate%></td>
+                    <td><%=transaction.transactionType%></td>
+                    <td><%=transaction.amount%></td>
+                </tr>
+                <%}%>
+            </table>
+        </div>
+        <div class="statement-footer">
+            <p>Generated on: <%=currentDate%></p>
+        </div>
+    </section>
+    <a id="download-button" href="/statement/generate-pdf">Download PDF</a>
+    </main>
+<%- include("../shared/includes/footer")%>

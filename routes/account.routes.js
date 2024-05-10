@@ -15,4 +15,6 @@ router.post('/pay',authMiddleware.requireAuth, accountController.makePayment);
 
 router.get('/transactions' ,authMiddleware.requireAuth, accountController.getTransactions);
 router.get('/transactions/:transactionId',authMiddleware.requireAuth , accountController.getTransactionDetails);
+router.get('/statement' , authMiddleware.requireAuth, accountController.getStatement);
+router.get('/statement/generate-pdf', authMiddleware.requireAuth, accountController.generatePDF);
 module.exports = router;

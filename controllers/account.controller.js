@@ -1,9 +1,9 @@
 const mongodb = require("mongodb");
 const CryptoJS = require("crypto-js");
+const PDFDocument = require("pdfkit");
 const db = require("../data/database");
 const ObjectId = mongodb.ObjectId;
 const Transaction = require("../models/transaction.model");
-const { error } = require("console");
 
 const getDepositMoney = async (req, res) => {
   const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
@@ -99,9 +99,11 @@ const depositMoney = async (req, res) => {
 };
 
 const getPaymentPage = async (req, res) => {
-  try{
+  try {
     const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+    const encryptedExistingAccountId = JSON.parse(
+      req.cookies.existingAccountId
+    );
     const existingUserId = CryptoJS.AES.decrypt(
       encryptedExistingUserId,
       process.env.SECRET_KEY
@@ -110,7 +112,7 @@ const getPaymentPage = async (req, res) => {
       encryptedExistingAccountId,
       process.env.SECRET_KEY
     ).toString(CryptoJS.enc.Utf8);
-  } catch(error){
+  } catch (error) {
     console.log(error);
     return res.redirect("/login?error=Login to continue");
   }
@@ -144,21 +146,21 @@ const getPaymentPage = async (req, res) => {
 const makePayment = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-      const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-      const encryptedExistingAccountId = JSON.parse(
-        req.cookies.existingAccountId
-      );
-      if(!encryptedExistingUserId || !encryptedExistingAccountId){
-        return res.redirect("/pay?error=Error Occured! Try Again!!");
-      }
-      const existingUserId = CryptoJS.AES.decrypt(
-        encryptedExistingUserId,
-        process.env.SECRET_KEY
-      ).toString(CryptoJS.enc.Utf8);
-      const senderAccountId = CryptoJS.AES.decrypt(
-        encryptedExistingAccountId,
-        process.env.SECRET_KEY
-      ).toString(CryptoJS.enc.Utf8);
+    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+    const encryptedExistingAccountId = JSON.parse(
+      req.cookies.existingAccountId
+    );
+    if (!encryptedExistingUserId || !encryptedExistingAccountId) {
+      return res.redirect("/pay?error=Error Occured! Try Again!!");
+    }
+    const existingUserId = CryptoJS.AES.decrypt(
+      encryptedExistingUserId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    const senderAccountId = CryptoJS.AES.decrypt(
+      encryptedExistingAccountId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
     const senderAccount = await db
       .getDb()
       .collection("Accounts")
@@ -219,23 +221,33 @@ const makePayment = async (req, res) => {
   }
 };
 const getTransactions = async (req, res) => {
-  const userId = req.query.userId;
-  const accountId = req.query.accountId;
+  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+  const existingUserId = CryptoJS.AES.decrypt(
+    encryptedExistingUserId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const existingAccountId = CryptoJS.AES.decrypt(
+    encryptedExistingAccountId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
   const userData = await db
     .getDb()
     .collection("Users")
-    .findOne({ _id: new ObjectId(userId) });
-  if (!userData) {
-    res.redirect("/login");
-  }
+    .findOne({ userId: existingUserId });
   const accountDetails = await db
     .getDb()
     .collection("Accounts")
-    .findOne({ _id: new ObjectId(accountId) });
-  if (!accountDetails) {
-    res.redirect("/login");
+    .findOne({ accountId: existingAccountId });
+  if (!userData) {
+    return res.redirect("/login");
   }
-  const transactions = await Transaction.getTransactionsByAccount(accountId);
+  if (!accountDetails) {
+    return res.redirect("/login");
+  }
+  const transactions = await Transaction.getTransactionsByAccount(
+    existingAccountId
+  );
   res.render("customer/transactions", {
     userData: userData,
     accountDetails: accountDetails,
@@ -244,62 +256,55 @@ const getTransactions = async (req, res) => {
 };
 
 const getTransactionDetails = async (req, res) => {
-  const userId = req.query.userId;
-  const senderAccountId = req.query.accountId;
-  const transactionId = req.params.transactionId;
-
   try {
-    console.log("Transaction ID:", transactionId);
-
+    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+    const encryptedExistingAccountId = JSON.parse(
+      req.cookies.existingAccountId
+    );
+    const existingUserId = CryptoJS.AES.decrypt(
+      encryptedExistingUserId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    const existingAccountId = CryptoJS.AES.decrypt(
+      encryptedExistingAccountId,
+      process.env.SECRET_KEY
+    ).toString(CryptoJS.enc.Utf8);
     const userData = await db
       .getDb()
       .collection("Users")
-      .findOne({ _id: new ObjectId(userId) });
-    if (!userData) {
-      console.log("User data not found");
-      return res.redirect("/login");
-    }
-
+      .findOne({ userId: existingUserId });
     const senderAccountDetails = await db
       .getDb()
       .collection("Accounts")
-      .findOne({ _id: new ObjectId(senderAccountId) });
-    if (!senderAccountDetails) {
-      console.log("Sender account details not found");
+      .findOne({ accountId: existingAccountId });
+    const transactionId = req.params.transactionId;
+    if (!userData) {
       return res.redirect("/login");
     }
-
+    if (!senderAccountDetails) {
+      return res.redirect("/login");
+    }
     const transaction = await db
       .getDb()
       .collection("Transactions")
       .findOne({ _id: new ObjectId(transactionId) });
     if (!transaction) {
-      console.log("Transaction not found");
-      return res.status(404).send("Transaction not found");
+      return res.redirect("/login");
     }
-    console.log(transaction.receiverAccountNumber);
-    console.log("Receiver Account Number:", transaction.receiverAccountNumber);
     const receiverAccountDetails = await db
       .getDb()
       .collection("Accounts")
       .findOne({ accountNumber: transaction.receiverAccountNumber });
     if (!receiverAccountDetails) {
-      console.log("Receiver account details not found");
-      return res.status(404).send("Receiver account details not found");
-    } else {
-      console.log("Receiver account details found:", receiverAccountDetails);
+      return res.status(404).render("404");
     }
-
     const receiverUser = await db
       .getDb()
       .collection("Users")
       .findOne({ userId: receiverAccountDetails.accountId });
     if (!receiverUser) {
-      console.log("Receiver user data not found");
-      return res.status(404).send("Receiver user data not found");
+      return res.status(404).render("404");
     }
-
-    console.log("Rendering transaction details page");
     res.render("customer/transaction-details", {
       userData: userData,
       senderAccountDetails: senderAccountDetails,
@@ -308,11 +313,194 @@ const getTransactionDetails = async (req, res) => {
       receiverUser: receiverUser,
     });
   } catch (error) {
-    console.error("Error retrieving transaction details:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).redirect("/500");
   }
 };
+const getStatement = async (req, res) => {
+  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+  const existingUserId = CryptoJS.AES.decrypt(
+    encryptedExistingUserId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const existingAccountId = CryptoJS.AES.decrypt(
+    encryptedExistingAccountId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const userData = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ userId: existingUserId });
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ accountId: existingAccountId });
+  if (!userData) {
+    return res.redirect("/login");
+  }
+  if (!accountDetails) {
+    return res.redirect("/login");
+  }
+  const transactions = await Transaction.getTransactionsByAccount(
+    existingAccountId
+  );
 
+  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const firstTransactionDate = new Date(transactions[0].date);
+  const lastTransactionDate = new Date(
+    transactions[transactions.length - 1].date
+  );
+
+  const options = {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  const humanReadableFirstTransactionDate =
+    firstTransactionDate.toLocaleDateString("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  const humanReadableLastTransactionDate =
+    lastTransactionDate.toLocaleDateString("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  transactions.forEach((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    transaction.formattedDate = transactionDate.toLocaleString(
+      "en-US",
+      options
+    );
+  });
+  let currentDate = new Date();
+  currentDate = currentDate.toLocaleDateString("en-US", options);
+  res.render("customer/financial-statement", {
+    userData: userData,
+    accountDetails: accountDetails,
+    transactions: transactions,
+    firstTransactionDate: humanReadableFirstTransactionDate,
+    lastTransactionDate: humanReadableLastTransactionDate,
+    currentDate: currentDate,
+  });
+};
+const generatePDF = async (req, res) => {
+  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
+  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
+  const existingUserId = CryptoJS.AES.decrypt(
+    encryptedExistingUserId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const existingAccountId = CryptoJS.AES.decrypt(
+    encryptedExistingAccountId,
+    process.env.SECRET_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  const userData = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ userId: existingUserId });
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ accountId: existingAccountId });
+  if (!userData) {
+    return res.redirect("/login");
+  }
+  if (!accountDetails) {
+    return res.redirect("/login");
+  }
+  const transactions = await Transaction.getTransactionsByAccount(
+    existingAccountId
+  );
+
+  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const firstTransactionDate = new Date(transactions[0].date);
+  const lastTransactionDate = new Date(
+    transactions[transactions.length - 1].date
+  );
+
+  const options = {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  const humanReadableFirstTransactionDate =
+    firstTransactionDate.toLocaleDateString("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  const humanReadableLastTransactionDate =
+    lastTransactionDate.toLocaleDateString("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  transactions.forEach((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    transaction.formattedDate = transactionDate.toLocaleString(
+      "en-US",
+      options
+    );
+  });
+  let currentDate = new Date();
+  currentDate = currentDate.toLocaleDateString("en-US", options);
+  const doc = new PDFDocument();
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=${userData.name}-statement.pdf`
+  );
+  doc.pipe(res);
+  doc.fontSize(20).text("Financial Statement", {
+    align: "center",
+  });
+  doc.fontSize(15).text(`Name: ${userData.name}`);
+  doc.text(`Email: ${userData.email}`);
+  doc.text(`Account Number: ${accountDetails.accountNumber}`);
+  doc.text(`Account Balance: ${accountDetails.balance}`);
+  doc.text(`Current Date: ${currentDate}`, {
+    align: "right",
+  });
+  doc.moveDown();
+  doc.fontSize(20).text("Transactions", {
+    align: "center",
+  });
+  doc.moveDown();
+  transactions.forEach((transaction, index) => {
+    doc.fontSize(15).text(`Transaction ${index + 1}`);
+    doc.text(`Transaction Type: ${transaction.transactionType}`);
+    doc.text(`Amount: ${transaction.amount}`);
+    doc.text(`Date: ${transaction.formattedDate}`);
+    doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
+    doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
+    doc.moveDown();
+  });
+  doc.end();
+  res.download("document.pdf");
+};
 module.exports = {
   getDepositMoney,
   depositMoney,
@@ -320,4 +508,6 @@ module.exports = {
   makePayment,
   getTransactions,
   getTransactionDetails,
+  getStatement,
+  generatePDF,
 };
