@@ -1,6 +1,4 @@
 const CryptoJS = require("crypto-js");
-const axios = require("axios");
-const { exec } = require("child_process");
 const db = require("../data/database");
 const getIndex = (req, res) => {
   const encryptedExistingUserId = req.cookies.existingUserId;
