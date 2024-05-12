@@ -1,48 +1,48 @@
 const CryptoJS = require("crypto-js");
 const db = require("../data/database");
-const getIndex = (req, res) => {
+const User = require("../models/user.model");
+const Account = require("../models/account.model");
+const getUserId = (req) => {
   const encryptedExistingUserId = req.cookies.existingUserId;
-  const encryptedExistingAccountId = req.cookies.existingAccountId;
-  let userData;
-  let accountDetails;
-  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
-    userData = null;
-    accountDetails = null;
+  if (!encryptedExistingUserId) {
+    return null;
   }
+  return JSON.parse(encryptedExistingUserId);
+};
+const getAccountId = (req) => {
+  const encryptedExistingAccountId = req.cookies.existingAccountId;
+  if (!encryptedExistingAccountId) {
+    return null;
+  }
+  return JSON.parse(encryptedExistingAccountId);
+};
+const decrypt = (id) => {
+  return CryptoJS.AES.decrypt(id, process.env.SECRET_KEY).toString(
+    CryptoJS.enc.Utf8
+  );
+};
+const getIndex = (req, res) => {
   res.render("index", {
-    userData,
-    accountDetails,
+    userData: null,
+    accountDetails: null,
   });
 };
 
 const getHome = async (req, res) => {
-  const encryptedExistingUserId = req.cookies.existingUserId;
-  const encryptedExistingAccountId = req.cookies.existingAccountId;
+  const existingUserId = getUserId(req);
+  const existingAccountId = getAccountId(req);
 
-  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
+  if (!existingUserId || !existingAccountId) {
     return res.redirect("/login");
   }
 
-  const existingUserId = JSON.parse(encryptedExistingUserId);
-  const existingAccountId = JSON.parse(encryptedExistingAccountId);
+  const decryptedExistingUserId = decrypt(existingUserId);
+  const decryptedExistingAccountId = decrypt(existingAccountId);
 
-  const decryptedExistingUserId = CryptoJS.AES.decrypt(
-    existingUserId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const decryptedExistingAccountId = CryptoJS.AES.decrypt(
-    existingAccountId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-
-  const existingUser = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: decryptedExistingUserId });
-  const existingAccount = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ accountId: decryptedExistingAccountId });
+  const existingUser = await User.getUserById(decryptedExistingUserId);
+  const existingAccount = await Account.getAccountById(
+    decryptedExistingAccountId
+  );
 
   res.render("customer/home-page", {
     userData: existingUser,

@@ -115,26 +115,26 @@ const getPaymentPage = async (req, res) => {
       process.env.SECRET_KEY
     ).toString(CryptoJS.enc.Utf8);
     userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: existingUserId });
-  accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ accountId: existingAccountId });
-  if (!userData) {
-    res.redirect("/login?error=Invalid email or password. Please try again.");
-  }
-  if (!accountDetails) {
-    res.redirect("/login?error=Invalid email or password. Please try again.");
-  }
-  if (req.query.error) {
-    return res.render("customer/make-payments", {
-      userData: userData,
-      accountDetails: accountDetails,
-      error: req.query.error,
-    });
-  }
+      .getDb()
+      .collection("Users")
+      .findOne({ userId: existingUserId });
+    accountDetails = await db
+      .getDb()
+      .collection("Accounts")
+      .findOne({ accountId: existingAccountId });
+    if (!userData) {
+      res.redirect("/login?error=Invalid email or password. Please try again.");
+    }
+    if (!accountDetails) {
+      res.redirect("/login?error=Invalid email or password. Please try again.");
+    }
+    if (req.query.error) {
+      return res.render("customer/make-payments", {
+        userData: userData,
+        accountDetails: accountDetails,
+        error: req.query.error,
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.redirect("/login?error=Login to continue");
@@ -370,7 +370,7 @@ const getStatement = async (req, res) => {
       weekday: "long",
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
     });
   const humanReadableLastTransactionDate =
     lastTransactionDate.toLocaleDateString("en-US", {
@@ -378,7 +378,7 @@ const getStatement = async (req, res) => {
       weekday: "long",
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
     });
   transactions.forEach((transaction) => {
     const transactionDate = new Date(transaction.date);

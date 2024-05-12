@@ -17,7 +17,9 @@ class User {
   async getUserByEmail(email) {
     return await db.getDb().collection("Users").findOne({ email });
   }
-
+  static async getUserById(userId) {
+    return await db.getDb().collection("Users").findOne({ userId: userId });
+  }
   async userAlreadyExists() {
     try {
       const existingUser = await this.getUserByEmail(this.email);

@@ -39,6 +39,22 @@ class Account {
       return null;
     }
   }
+  static async getAccountById(accountId) {
+    try {
+      const account = await db
+        .getDb()
+        .collection("Accounts")
+        .findOne({ accountId: accountId });
+      if (!account) {
+        throw new Error("Account not found!");
+      } else {
+        return account;
+      }
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
 }
 
 module.exports = Account;
