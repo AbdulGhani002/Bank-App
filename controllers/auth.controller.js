@@ -6,14 +6,6 @@ const logger = require("../utils/logger");
 const jwt = require("jsonwebtoken");
 
 function getSignup(req, res) {
-  const encryptedExistingUserId = req.cookies.existingUserId;
-  const encryptedExistingAccountId = req.cookies.existingAccountId;
-  let userData;
-  let accountDetails;
-  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
-    userData = null;
-    accountDetails = null;
-  }
   if (
     req.query.error === "User already exists. Please login." ||
     req.query.error === "Error creating user. Please try again." ||
@@ -31,8 +23,8 @@ function getSignup(req, res) {
       street: req.query.street,
       city: req.query.city,
       postalCode: req.query.postalCode,
-      userData,
-      accountDetails,
+      userData:null,
+      accountDetails:null,
     });
   }
   res.render("customer/auth/create-account", {
@@ -45,20 +37,12 @@ function getSignup(req, res) {
     street: null,
     city: null,
     postalCode: null,
-    userData,
-    accountDetails,
+    userData:null,
+    accountDetails:null,
   });
 }
 
 function getLogin(req, res) {
-  const encryptedExistingUserId = req.cookies.existingUserId;
-  const encryptedExistingAccountId = req.cookies.existingAccountId;
-  let userData;
-  let accountDetails;
-  if (!encryptedExistingUserId || !encryptedExistingAccountId) {
-    userData = null;
-    accountDetails = null;
-  }
   if (
     req.query.error === "Invalid email or password. Please try again." ||
     req.query.error === "Invalid email or password. Please try again." ||
@@ -71,8 +55,8 @@ function getLogin(req, res) {
       email: req.query.email,
       password: req.query.password,
       successMessage: req.query.successMessage,
-      userData,
-      accountDetails,
+      userData:null,
+      accountDetails:null,
     });
   }
   res.render("customer/auth/login", {
@@ -80,8 +64,8 @@ function getLogin(req, res) {
     email: null,
     password: null,
     successMessage: null,
-    userData,
-    accountDetails,
+    userData:null,
+    accountDetails:null,
   });
 }
 

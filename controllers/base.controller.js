@@ -1,5 +1,4 @@
 const CryptoJS = require("crypto-js");
-const db = require("../data/database");
 const User = require("../models/user.model");
 const Account = require("../models/account.model");
 const getUserId = (req) => {
