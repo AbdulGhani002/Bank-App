@@ -135,3 +135,74 @@ header #yellow-background-logo {
 header nav ul li a:hover {
     color: var(--color-primary-900);
 }
+@media screen and (max-width: 768px) {
+    main {
+      width: 80%;
+      margin-top: 6rem; 
+    }
+  
+    header h2 a {
+      font-size: 1.5rem;
+    }
+  
+    header nav ul li {
+      margin: 1rem;
+      padding: 0.5rem;
+    }
+  
+    main a#new-account-button,
+    button {
+      padding: 0.5rem 1rem;
+      margin-bottom: 1rem; 
+    }
+  
+    header nav ul {
+      flex-direction: column;
+      background-color: var(--color-primary-500-bg);
+      position: absolute;
+      top: 4.5rem;
+      left: 0;
+      width: 100%;
+      padding: 1rem;
+      border-radius: var(--border-radius-medium);
+      box-shadow: var(--shadow-medium);
+      z-index: 1000;
+      display: none;
+    }
+  
+    header nav ul li a {
+      margin: 0.5rem;
+      padding: 0.5rem; 
+    }
+  
+    #menu-toggle:checked + #menu-icon + ul {
+      display: flex; 
+    }
+  }
+  
+  @media screen and (max-width: 576px) {
+    header h2 a {
+      font-size: 1.3rem; 
+    }
+  
+    main {
+      width: 90%; 
+      margin-top: 4rem; 
+    }
+  
+    header nav ul li {
+      margin: 0.5rem;
+      padding: 0.3rem;
+    }
+  
+    header nav ul li a {
+      font-size: 1.2rem; 
+    }
+  
+    main a#new-account-button,
+    button {
+      padding: 0.4rem 0.8rem; 
+      margin-bottom: 0.5rem; 
+    }
+  }
+  

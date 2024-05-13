@@ -311,6 +311,7 @@ const getTransactionDetails = async (req, res) => {
       userData: userData,
       senderAccountDetails: senderAccountDetails,
       transaction: transaction,
+      accountDetails: senderAccountDetails,
       receiverAccountDetails: receiverAccountDetails,
       receiverUser: receiverUser,
     });

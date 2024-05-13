@@ -8,8 +8,11 @@
   </section>
   <section>
     <nav>
+      <input type="checkbox" id="menu-toggle">
+      <label for="menu-toggle" id="menu-icon">&#9776;</label>
       <ul>
         <% if(userData && accountDetails) { %>
+          <li><a href="/home">Home</a></li>
         <li><a href="/logout">Logout</a></li>
         <% } else{%>
         <li><a href="/login">Login</a></li>

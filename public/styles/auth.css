@@ -1,6 +1,10 @@
+/* General styles */
 main {
   width: 40%;
+  margin: 0 auto; /* Center the main content */
+  text-align: center; /* Center the content inside main */
 }
+
 input {
   display: block;
   margin: 0 auto;
@@ -9,6 +13,7 @@ input {
   padding: 0.5rem;
   font-size: 1rem;
 }
+
 label {
   font-size: 1rem;
 }
@@ -18,27 +23,38 @@ button {
 }
 
 hr {
-  margin: 1rem;
+  margin: 1rem auto; /* Center the hr */
   width: 60%;
+  max-width: 300px; /* Limit hr width for smaller screens */
   color: var(--color-primary-900);
 }
-.error {
-  color: #D8000C; 
+
+/* Error and success messages */
+.error, .success {
   border-radius: 5px; 
-  padding: 1rem 1rem; 
+  padding: 1rem;
   font-size: 1rem;
-  width: 100%;
-  margin: 0;
+  width: 90%; /* Adjust message width for smaller screens */
+  max-width: 300px; /* Limit message width for smaller screens */
+  margin: 1rem auto; /* Center the message */
   text-align: center;
 }
 
-.success{
-  background-color: #d4edda;
-  color: #155724;
-  border-radius: 5px; 
-  padding: 1rem 1rem; 
-  font-size: 1rem;
-  width: 100%;
-  margin: 0;
-  text-align: center;
+/* Adjustments for smaller screens */
+@media screen and (max-width: 768px) {
+  main {
+    width: 60%; /* Adjust main width for smaller screens */
+  }
+}
+
+/* Further adjustments for extra small screens */
+@media screen and (max-width: 576px) {
+  main {
+    width: 80%; /* Further adjust main width for extra small screens */
+  }
+
+  input, label, button, hr, .error, .success {
+    width: 100%; /* Make input, label, button, hr, and messages full width */
+    max-width: none; /* Remove max-width for smaller screens */
+  }
 }

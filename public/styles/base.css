@@ -165,3 +165,87 @@ footer {
   margin-top: auto;
   opacity:0.75;
 }
+#menu-toggle {
+  display: none;
+}
+
+#menu-icon {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+header nav ul {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  list-style: none;
+}
+
+header nav ul li {
+  margin: 1rem;
+  padding: 0.3rem;
+}
+
+@media screen and (max-width: 768px) {
+  #menu-icon {
+    display: block;
+  }
+
+  header nav ul {
+    display: none;
+    flex-direction: column;
+    background-color: var(--color-primary-500-bg);
+    position: absolute;
+    top: 4.5rem;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--shadow-medium);
+    z-index: 1000;
+  }
+
+  header nav ul li {
+    margin: 0.5rem;
+  }
+
+  #menu-toggle:checked + #menu-icon + ul {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main {
+    width: 90%; 
+    margin-top: 6rem;
+  }
+
+  header h2 a {
+    font-size: 1.5rem; 
+  }
+
+  header nav ul li {
+    margin: 0.5rem; 
+  }
+
+  #menu-icon {
+    font-size: 1.3rem; 
+  }
+}
+
+
+@media screen and (max-width: 576px) {
+  main {
+    width: 95%; 
+    margin-top: 4rem; 
+  }
+
+  header h2 a {
+    font-size: 1.3rem; 
+  }
+
+  #menu-icon {
+    font-size: 1.2rem; 
+  }
+}
