@@ -1,8 +1,8 @@
-/* General styles */
+
 main {
   width: 40%;
-  margin: 0 auto; /* Center the main content */
-  text-align: center; /* Center the content inside main */
+  margin: 7rem auto; 
+  text-align: center; 
 }
 
 input {
@@ -23,38 +23,44 @@ button {
 }
 
 hr {
-  margin: 1rem auto; /* Center the hr */
+  margin: 1rem auto; 
   width: 60%;
-  max-width: 300px; /* Limit hr width for smaller screens */
+  max-width: 300px; 
   color: var(--color-primary-900);
 }
 
-/* Error and success messages */
+
 .error, .success {
   border-radius: 5px; 
   padding: 1rem;
   font-size: 1rem;
-  width: 90%; /* Adjust message width for smaller screens */
-  max-width: 300px; /* Limit message width for smaller screens */
-  margin: 1rem auto; /* Center the message */
+  width: 90%; 
+  max-width: 300px; 
+  margin: 1rem auto;
   text-align: center;
 }
 
-/* Adjustments for smaller screens */
+.error {
+  background-color: var(--color-error);
+  color: var(--color-error-contrast);
+}
+.success {
+  background-color: var(--color-success);
+  color: var(--color-success-contrast);
+}
 @media screen and (max-width: 768px) {
   main {
-    width: 60%; /* Adjust main width for smaller screens */
+    width: 60%; 
   }
 }
 
-/* Further adjustments for extra small screens */
 @media screen and (max-width: 576px) {
   main {
-    width: 80%; /* Further adjust main width for extra small screens */
+    width: 80%;
   }
 
   input, label, button, hr, .error, .success {
-    width: 100%; /* Make input, label, button, hr, and messages full width */
-    max-width: none; /* Remove max-width for smaller screens */
+    width: 100%;
+    max-width: none;
   }
 }
