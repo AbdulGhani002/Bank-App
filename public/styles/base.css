@@ -102,7 +102,7 @@ main p {
   margin: 1rem;
 }
 
-main a {
+main a,footer a {
   color: var(--color-primary-900);
   text-decoration: none;
 }
