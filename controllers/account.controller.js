@@ -441,82 +441,96 @@ const generatePDF = async (req, res) => {
   const transactions = await Transaction.getTransactionsByAccount(
     existingAccountId
   );
-
-  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  const firstTransactionDate = new Date(transactions[0].date);
-  const lastTransactionDate = new Date(
-    transactions[transactions.length - 1].date
-  );
-
-  const options = {
-    timeZone: "Asia/Kolkata",
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  };
-  const humanReadableFirstTransactionDate =
-    firstTransactionDate.toLocaleDateString("en-US", {
-      timeZone: "Asia/Kolkata",
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+  if (
+    transactions.length == 0 ||
+    transactions == null ||
+    transactions == undefined
+  ) {
+    return res.render("customer/financial-statement", {
+      userData: userData,
+      accountDetails: accountDetails,
+      transactions: transactions,
+      firstTransactionDate: null,
+      lastTransactionDate: null,
+      currentDate: null,
     });
-  const humanReadableLastTransactionDate =
-    lastTransactionDate.toLocaleDateString("en-US", {
-      timeZone: "Asia/Kolkata",
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  transactions.forEach((transaction) => {
-    const transactionDate = new Date(transaction.date);
-    transaction.formattedDate = transactionDate.toLocaleString(
-      "en-US",
-      options
+  } else {
+    transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const firstTransactionDate = new Date(transactions[0].date);
+    const lastTransactionDate = new Date(
+      transactions[transactions.length - 1].date
     );
-  });
-  let currentDate = new Date();
-  currentDate = currentDate.toLocaleDateString("en-US", options);
-  const doc = new PDFDocument();
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=${userData.name}-statement.pdf`
-  );
-  doc.pipe(res);
-  doc.fontSize(20).text("Financial Statement", {
-    align: "center",
-  });
-  doc.fontSize(15).text(`Name: ${userData.name}`);
-  doc.text(`Email: ${userData.email}`);
-  doc.text(`Account Number: ${accountDetails.accountNumber}`);
-  doc.text(`Account Balance: ${accountDetails.balance}`);
-  doc.text(`Current Date: ${currentDate}`, {
-    align: "right",
-  });
-  doc.moveDown();
-  doc.fontSize(20).text("Transactions", {
-    align: "center",
-  });
-  doc.moveDown();
-  transactions.forEach((transaction, index) => {
-    doc.fontSize(15).text(`Transaction ${index + 1}`);
-    doc.text(`Transaction Type: ${transaction.transactionType}`);
-    doc.text(`Amount: ${transaction.amount}`);
-    doc.text(`Date: ${transaction.formattedDate}`);
-    doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
-    doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
+
+    const options = {
+      timeZone: "Asia/Kolkata",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+    };
+    const humanReadableFirstTransactionDate =
+      firstTransactionDate.toLocaleDateString("en-US", {
+        timeZone: "Asia/Kolkata",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    const humanReadableLastTransactionDate =
+      lastTransactionDate.toLocaleDateString("en-US", {
+        timeZone: "Asia/Kolkata",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    transactions.forEach((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      transaction.formattedDate = transactionDate.toLocaleString(
+        "en-US",
+        options
+      );
+    });
+    let currentDate = new Date();
+    currentDate = currentDate.toLocaleDateString("en-US", options);
+    const doc = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${userData.name}-statement.pdf`
+    );
+    doc.pipe(res);
+    doc.fontSize(20).text("Financial Statement", {
+      align: "center",
+    });
+    doc.fontSize(15).text(`Name: ${userData.name}`);
+    doc.text(`Email: ${userData.email}`);
+    doc.text(`Account Number: ${accountDetails.accountNumber}`);
+    doc.text(`Account Balance: ${accountDetails.balance}`);
+    doc.text(`Current Date: ${currentDate}`, {
+      align: "right",
+    });
     doc.moveDown();
-  });
-  doc.end();
-  res.download("document.pdf");
+    doc.fontSize(20).text("Transactions", {
+      align: "center",
+    });
+    doc.moveDown();
+    transactions.forEach((transaction, index) => {
+      doc.fontSize(15).text(`Transaction ${index + 1}`);
+      doc.text(`Transaction Type: ${transaction.transactionType}`);
+      doc.text(`Amount: ${transaction.amount}`);
+      doc.text(`Date: ${transaction.formattedDate}`);
+      doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
+      doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
+      doc.moveDown();
+    });
+    doc.end();
+    res.download("document.pdf");
+  }
 };
 module.exports = {
   getDepositMoney,
