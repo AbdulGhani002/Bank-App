@@ -344,28 +344,25 @@ const getStatement = async (req, res) => {
   if (!accountDetails) {
     return res.redirect("/login");
   }
-  const transactions = await Transaction.getTransactionsByAccount(
-    existingAccountId
-  );
-
-  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  const firstTransactionDate = new Date(transactions[0].date);
-  const lastTransactionDate = new Date(
-    transactions[transactions.length - 1].date
-  );
-
-  const options = {
-    timeZone: "Asia/Kolkata",
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  };
-  const humanReadableFirstTransactionDate =
+    const transactions = await Transaction.getTransactionsByAccount(
+      existingAccountId
+    );
+    if(transactions.length === 0 || transactions === null || transactions === undefined){
+      return res.render("customer/financial-statement", {
+        userData: userData,
+        accountDetails: accountDetails,
+        transactions: transactions,
+        firstTransactionDate: null,
+        lastTransactionDate: null,
+        currentDate: null,
+      });
+    }
+    transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const firstTransactionDate = new Date(transactions[0].date);
+    const lastTransactionDate = new Date(
+      transactions[transactions.length - 1].date
+    );
+    const humanReadableFirstTransactionDate =
     firstTransactionDate.toLocaleDateString("en-US", {
       timeZone: "Asia/Kolkata",
       weekday: "long",
@@ -388,6 +385,18 @@ const getStatement = async (req, res) => {
       options
     );
   });
+ 
+  const options = {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  
   let currentDate = new Date();
   currentDate = currentDate.toLocaleDateString("en-US", options);
   res.render("customer/financial-statement", {
