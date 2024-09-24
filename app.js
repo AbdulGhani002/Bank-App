@@ -24,6 +24,7 @@ app.use(baseRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);
 app.use(errorHandlerMiddleware);
+
 db.connectToDatabase()
   .then(() => {
     app.listen(process.env.PORT || 5500,"0.0.0.0",function(){
