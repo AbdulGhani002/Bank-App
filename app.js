@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes");
 const accountRoutes = require("./routes/account.routes");
 const cookieParser = require("cookie-parser");
 const {checkUser} = require("./middlewares/auth-middleware");
+const csrf = require('lusca').csrf;
 
 const errorHandlerMiddleware = require("./middlewares/error-handler");
 
@@ -18,6 +19,7 @@ app.use(express.static("public"));
 app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(csrf());
 
 app.get("*",checkUser);
 app.use(baseRoutes);
