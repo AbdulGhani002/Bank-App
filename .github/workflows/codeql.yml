@@ -39,7 +39,7 @@ jobs:
       if: matrix.language == 'javascript-typescript'
       run: |
         # Install Node.js dependencies
-        npm install
+        npm install && npm start
 
     - name: Build the project
       if: matrix.language == 'javascript-typescript'
