@@ -19,13 +19,13 @@ app.use(express.static("public"));
 app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(csrf());
 
 app.get("*",checkUser);
 app.use(baseRoutes);
 app.use(authRoutes);
 app.use(accountRoutes);
 app.use(errorHandlerMiddleware);
+app.use(csrf());
 
 db.connectToDatabase()
   .then(() => {
