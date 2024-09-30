@@ -26,7 +26,8 @@
     "mongodb": "^6.3.0",
     "node": "^21.7.3",
     "pdfkit": "^0.15.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "wrangler": "^3.78.12"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
