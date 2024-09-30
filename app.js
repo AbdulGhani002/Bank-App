@@ -33,10 +33,11 @@ app.use(errorHandlerMiddleware);
 
 db.connectToDatabase()
   .then(() => {
-    app.listen(process.env.PORT || 5500, "0.0.0.0", function () {
-      console.log("Server is running on port 3000");
+    const port = process.env.PORT || 5500;
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Server is running on port ${port}`);
     });
   })
   .catch((error) => {
-    console.log(error);
+    console.error("Database connection error:", error);
   });
