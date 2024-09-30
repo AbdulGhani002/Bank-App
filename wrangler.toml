@@ -1,0 +1,7 @@
+name = "my-worker"  # Your worker's name
+type = "javascript"  # The type of your worker
+main = "index.js"  # Specify the entry point (adjust if your file is named differently)
+
+account_id = ""
+workers_dev = true
+compatibility_date = "2024-01-01" 
