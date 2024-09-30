@@ -328,10 +328,12 @@ async function logout(req, res) {
   res.cookie("existingUserId", "", {
     maxAge: 1,
     secure: true,
+    httpOnly: true,
   });
   res.cookie("existingAccountId", "", {
     maxAge: 1,
     secure: true,
+    httpOnly: true,
   });
   res.cookie("jwt", "", {
     maxAge: 1,
