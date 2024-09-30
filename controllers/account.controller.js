@@ -163,6 +163,9 @@ const makePayment = async (req, res) => {
     if (!isValidAccountNumber(receiverAccountNumber)) {
       return res.redirect("/pay?error=Invalid Account Number");
     }
+    if (!isValidAccountNumber(senderAccountId)) {
+      return res.redirect("/pay?error=Invalid Account Number");
+    }
     const receiverAccount = await db
       .getDb()
       .collection("Accounts")
@@ -447,59 +450,59 @@ const generatePDF = async (req, res) => {
       currentDate: null,
     });
   }
-    const options = {
-      timeZone: "Asia/Kolkata",
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
-    };
-    transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-    transactions.forEach((transaction) => {
-      const transactionDate = new Date(transaction.date);
-      transaction.formattedDate = transactionDate.toLocaleString(
-        "en-US",
-        options
-      );
-    });
-    let currentDate = new Date();
-    currentDate = currentDate.toLocaleDateString("en-US", options);
-    const doc = new PDFDocument();
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${userData.name}-statement.pdf`
+  const options = {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  transactions.forEach((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    transaction.formattedDate = transactionDate.toLocaleString(
+      "en-US",
+      options
     );
-    doc.pipe(res);
-    doc.fontSize(20).text("Financial Statement", {
-      align: "center",
-    });
-    doc.fontSize(15).text(`Name: ${userData.name}`);
-    doc.text(`Email: ${userData.email}`);
-    doc.text(`Account Number: ${accountDetails.accountNumber}`);
-    doc.text(`Account Balance: ${accountDetails.balance}`);
-    doc.text(`Current Date: ${currentDate}`, {
-      align: "right",
-    });
+  });
+  let currentDate = new Date();
+  currentDate = currentDate.toLocaleDateString("en-US", options);
+  const doc = new PDFDocument();
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=${userData.name}-statement.pdf`
+  );
+  doc.pipe(res);
+  doc.fontSize(20).text("Financial Statement", {
+    align: "center",
+  });
+  doc.fontSize(15).text(`Name: ${userData.name}`);
+  doc.text(`Email: ${userData.email}`);
+  doc.text(`Account Number: ${accountDetails.accountNumber}`);
+  doc.text(`Account Balance: ${accountDetails.balance}`);
+  doc.text(`Current Date: ${currentDate}`, {
+    align: "right",
+  });
+  doc.moveDown();
+  doc.fontSize(20).text("Transactions", {
+    align: "center",
+  });
+  doc.moveDown();
+  transactions.forEach((transaction, index) => {
+    doc.fontSize(15).text(`Transaction ${index + 1}`);
+    doc.text(`Transaction Type: ${transaction.transactionType}`);
+    doc.text(`Amount: ${transaction.amount}`);
+    doc.text(`Date: ${transaction.formattedDate}`);
+    doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
+    doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
     doc.moveDown();
-    doc.fontSize(20).text("Transactions", {
-      align: "center",
-    });
-    doc.moveDown();
-    transactions.forEach((transaction, index) => {
-      doc.fontSize(15).text(`Transaction ${index + 1}`);
-      doc.text(`Transaction Type: ${transaction.transactionType}`);
-      doc.text(`Amount: ${transaction.amount}`);
-      doc.text(`Date: ${transaction.formattedDate}`);
-      doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
-      doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
-      doc.moveDown();
-    });
-    doc.end();
-    res.download("document.pdf");
+  });
+  doc.end();
+  res.download("document.pdf");
 };
 module.exports = {
   getDepositMoney,
