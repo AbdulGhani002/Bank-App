@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
-const rateLimit = require('express-rate-limit');
 const { join } = require("path");
 const db = require("./data/database");
+const rateLimiterMiddleware = require('./middlewares/rate-limiter')
 const baseRoutes = require("./routes/base.routes");
 const authRoutes = require("./routes/auth.routes");
 const accountRoutes = require("./routes/account.routes");
@@ -21,14 +21,9 @@ app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const limiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.',
-  headers: true,
-});
 
-app.use(limiter);
+
+app.use(rateLimiterMiddleware.limiter);
 
 app.get("*",checkUser);
 app.use(baseRoutes);
