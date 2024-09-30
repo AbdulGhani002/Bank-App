@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "node app.js",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "build": "echo 'No build step required' && npm install"
   },
   "keywords": [],
   "author": "Muhammad Abdul Ghani Qureshi",
