@@ -15,7 +15,7 @@ class User {
   }
 
   async getUserByEmail(email) {
-    return await db.getDb().collection("Users").findOne({ email });
+    return await db.getDb().collection("Users").findOne({ email: { $eq: email } });
   }
   static async getUserById(userId) {
     return await db.getDb().collection("Users").findOne({ userId: userId });
