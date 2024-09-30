@@ -16,7 +16,7 @@ function getSignup(req, res) {
     return res.render("customer/auth/create-account", {
       error: req.query.error,
       email: req.query.email,
-      password: req.query.password,
+      password: null,
       confirmPassword: req.query.confirmPassword,
       fullname: req.query.fullname,
       birthday: req.query.birthday,
@@ -53,7 +53,7 @@ function getLogin(req, res) {
     return res.render("customer/auth/login", {
       error: req.query.error,
       email: req.query.email,
-      password: req.query.password,
+      password: null,
       successMessage: req.query.successMessage,
       userData:null,
       accountDetails:null,
