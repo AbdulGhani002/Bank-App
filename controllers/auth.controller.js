@@ -17,7 +17,7 @@ function getSignup(req, res) {
       error: req.query.error,
       email: req.query.email,
       password: null,
-      confirmPassword: req.query.confirmPassword,
+      confirmPassword: null,
       fullname: req.query.fullname,
       birthday: null,
       street: req.query.street,
