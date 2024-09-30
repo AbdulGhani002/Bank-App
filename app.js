@@ -21,7 +21,7 @@ app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const csrfProtection = csurf({ cookie: true });
+const csrfProtection = csurf({ cookie: true, secure: true, httpOnly: true });
 app.use(csrfProtection);
 
 app.use(rateLimiterMiddleware.limiter);
