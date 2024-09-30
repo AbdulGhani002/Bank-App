@@ -46,8 +46,6 @@ const getDepositMoney = async (req, res) => {
 const depositMoney = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-
-    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
     const encryptedExistingAccountId = JSON.parse(
       req.cookies.existingAccountId
     );
