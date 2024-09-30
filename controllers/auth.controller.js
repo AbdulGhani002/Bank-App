@@ -124,8 +124,8 @@ async function login(req, res, next) {
     existingAccount.accountId,
     process.env.SECRET_KEY
   ).toString();
-  res.cookie("existingUserId", JSON.stringify(existingUserId));
-  res.cookie("existingAccountId", JSON.stringify(existingAccountId));
+  res.cookie("existingUserId", JSON.stringify(existingUserId), { httpOnly: true, secure: true });
+  res.cookie("existingAccountId", JSON.stringify(existingAccountId), { httpOnly: true, secure: true });
 
   res.redirect("/home");
 }
@@ -308,12 +308,15 @@ const createToken = (id) => {
 async function logout(req, res) {
   res.cookie("existingUserId", "", {
     maxAge: 1,
+    secure: true,
   });
   res.cookie("existingAccountId", "", {
     maxAge: 1,
+    secure: true,
   });
   res.cookie("jwt", "", {
     maxAge: 1,
+    secure: true,
   });
   res.redirect("/login");
 }
