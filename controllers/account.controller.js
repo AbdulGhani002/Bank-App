@@ -141,6 +141,12 @@ const getPaymentPage = async (req, res) => {
     error: null,
   });
 };
+
+const isValidAccountNumber = (accountNumber) => {
+  const regex = /^[a-zA-Z0-9-]{1,20}$/;
+  return regex.test(accountNumber);
+};
+
 const makePayment = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
@@ -155,12 +161,14 @@ const makePayment = async (req, res) => {
       encryptedExistingAccountId,
       process.env.SECRET_KEY
     ).toString(CryptoJS.enc.Utf8);
+    const receiverAccountNumber = req.body.recieverAccountNumber;
     const senderAccount = await db
       .getDb()
       .collection("Accounts")
       .findOne({ accountId: senderAccountId });
-    const receiverAccountNumber = req.body.recieverAccountNumber;
-
+    if (!isValidAccountNumber(receiverAccountNumber)) {
+      return res.redirect("/pay?error=Invalid Account Number");
+    }
     const receiverAccount = await db
       .getDb()
       .collection("Accounts")
