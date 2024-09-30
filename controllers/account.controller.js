@@ -33,12 +33,14 @@ const getDepositMoney = async (req, res) => {
   if (req.query.error) {
     return res.render("customer/deposit-money", {
       userData: userData,
+      csrfToken: req.csrfToken(),
       accountDetails: accountDetails,
       error: req.query.error,
     });
   }
   res.render("customer/deposit-money", {
     userData: userData,
+    csrfToken: req.csrfToken(),
     accountDetails: accountDetails,
     error: null,
   });
@@ -121,6 +123,7 @@ const getPaymentPage = async (req, res) => {
     if (req.query.error) {
       return res.render("customer/make-payments", {
         userData: userData,
+        csrfToken: req.csrfToken(),
         accountDetails: accountDetails,
         error: req.query.error,
       });
@@ -131,14 +134,21 @@ const getPaymentPage = async (req, res) => {
   }
   res.render("customer/make-payments", {
     userData: userData,
+    csrfToken: req.csrfToken(),
     accountDetails: accountDetails,
     error: null,
   });
 };
 
 const isValidAccountNumber = (accountNumber) => {
-  const regex = /^[a-zA-Z0-9-]{1,20}$/;
-  return regex.test(accountNumber);
+  const regex = /^[A-Z]{4}-[A-Z0-9]{8}$/;
+  if (!regex.test(accountNumber)) {
+    return false; 
+  }
+
+  const sanitizedAccountNumber = accountNumber.replace(/[^A-Z0-9-]/g, '');
+
+  return sanitizedAccountNumber === accountNumber;
 };
 
 const makePayment = async (req, res) => {
@@ -161,10 +171,7 @@ const makePayment = async (req, res) => {
       .collection("Accounts")
       .findOne({ accountId: senderAccountId });
     if (!isValidAccountNumber(receiverAccountNumber)) {
-      return res.redirect("/pay?error=Invalid Account Number");
-    }
-    if (!isValidAccountNumber(senderAccountId)) {
-      return res.redirect("/pay?error=Invalid Account Number");
+      return res.redirect("/pay?error=It is a command of DB");
     }
     const receiverAccount = await db
       .getDb()

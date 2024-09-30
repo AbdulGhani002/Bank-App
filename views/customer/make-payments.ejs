@@ -7,6 +7,7 @@
 <main>
     <h1>Add Amount</h1>
     <form method="POST" action="/pay">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <% if(error){ %>
             <p class="error"><%= error %></p>
         <%}%>

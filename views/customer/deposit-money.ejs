@@ -6,6 +6,7 @@
 <main>
     <h1>Add Amount</h1>
     <form method="POST" action="/deposit">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label for="deposit-money">
             <input type="number" alt="amount"  name="amount">
         </label>
