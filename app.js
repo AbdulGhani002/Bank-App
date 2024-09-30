@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const rateLimit = require('express-rate-limit');
 const { join } = require("path");
 const db = require("./data/database");
 const rateLimiterMiddleware = require('./middlewares/rate-limiter')
@@ -22,6 +21,7 @@ app.use(express.static("pictures"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(rateLimiterMiddleware.limiter)
 app.get("*",checkUser);
 app.use(baseRoutes);
 app.use(authRoutes);
