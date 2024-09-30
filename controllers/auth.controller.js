@@ -308,12 +308,15 @@ const createToken = (id) => {
 async function logout(req, res) {
   res.cookie("existingUserId", "", {
     maxAge: 1,
+    secure: true,
   });
   res.cookie("existingAccountId", "", {
     maxAge: 1,
+    secure: true,
   });
   res.cookie("jwt", "", {
     maxAge: 1,
+    secure: true,
   });
   res.redirect("/login");
 }
