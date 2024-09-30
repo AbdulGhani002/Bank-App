@@ -24,12 +24,13 @@
     "jsonwebtoken": "^9.0.2",
     "lusca": "^1.7.0",
     "mongodb": "^6.3.0",
-    "node": "^21.7.3",
     "pdfkit": "^0.15.0",
-    "uuid": "^9.0.1",
-    "wrangler": "^3.78.12"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
