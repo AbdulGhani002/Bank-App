@@ -19,7 +19,7 @@ function getSignup(req, res) {
       password: null,
       confirmPassword: req.query.confirmPassword,
       fullname: req.query.fullname,
-      birthday: req.query.birthday,
+      birthday: null,
       street: req.query.street,
       city: req.query.city,
       postalCode: req.query.postalCode,

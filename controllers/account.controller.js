@@ -59,10 +59,6 @@ const depositMoney = async (req, res) => {
       encryptedExistingAccountId,
       process.env.SECRET_KEY
     ).toString(CryptoJS.enc.Utf8);
-    const userData = await db
-      .getDb()
-      .collection("Users")
-      .findOne({ userId: existingUserId });
     const account = await db
       .getDb()
       .collection("Accounts")
@@ -155,10 +151,6 @@ const makePayment = async (req, res) => {
     if (!encryptedExistingUserId || !encryptedExistingAccountId) {
       return res.redirect("/pay?error=Error Occured! Try Again!!");
     }
-    const existingUserId = CryptoJS.AES.decrypt(
-      encryptedExistingUserId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
     const senderAccountId = CryptoJS.AES.decrypt(
       encryptedExistingAccountId,
       process.env.SECRET_KEY
@@ -469,23 +461,6 @@ const generatePDF = async (req, res) => {
     const lastTransactionDate = new Date(
       transactions[transactions.length - 1].date
     );
-
-    const humanReadableFirstTransactionDate =
-      firstTransactionDate.toLocaleDateString("en-US", {
-        timeZone: "Asia/Kolkata",
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    const humanReadableLastTransactionDate =
-      lastTransactionDate.toLocaleDateString("en-US", {
-        timeZone: "Asia/Kolkata",
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
     transactions.forEach((transaction) => {
       const transactionDate = new Date(transaction.date);
       transaction.formattedDate = transactionDate.toLocaleString(
