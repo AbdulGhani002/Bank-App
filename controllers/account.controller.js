@@ -51,10 +51,6 @@ const depositMoney = async (req, res) => {
     const encryptedExistingAccountId = JSON.parse(
       req.cookies.existingAccountId
     );
-    const existingUserId = CryptoJS.AES.decrypt(
-      encryptedExistingUserId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
     const existingAccountId = CryptoJS.AES.decrypt(
       encryptedExistingAccountId,
       process.env.SECRET_KEY
@@ -464,11 +460,6 @@ const generatePDF = async (req, res) => {
       second: "numeric",
     };
     transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const firstTransactionDate = new Date(transactions[0].date);
-    const lastTransactionDate = new Date(
-      transactions[transactions.length - 1].date
-    );
     transactions.forEach((transaction) => {
       const transactionDate = new Date(transaction.date);
       transaction.formattedDate = transactionDate.toLocaleString(

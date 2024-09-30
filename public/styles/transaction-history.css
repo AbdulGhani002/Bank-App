@@ -4,6 +4,7 @@ li.transaction-item {
     var(--color-primary-400),
     var(--color-primary-700)
   );
+  animation: slideIn 0.5s ease-in-out;
   color: var(--color-primary-50);
   border-radius: 8px;
   padding: 20px;
@@ -26,10 +27,6 @@ li.transaction-item:hover {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-li.transaction-item {
-  animation: slideIn 0.5s ease-in-out;
 }
 
 li.transaction-item a {

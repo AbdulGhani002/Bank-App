@@ -45,7 +45,6 @@ function getSignup(req, res) {
 function getLogin(req, res) {
   if (
     req.query.error === "Invalid email or password. Please try again." ||
-    req.query.error === "Invalid email or password. Please try again." ||
     req.query.successMessage ===
       "Account created successfully. Please login." ||
     req.query.error === "Login to continue"
@@ -249,7 +248,27 @@ async function createUserAndAccount(req, res) {
 
     const createdUser = await newUser.getUserByEmail(email);
 
-    if (createdUser && createdUser.userId) {
+    if(!createdUser){
+      return res.redirect(
+        "/signup?error=Error creating user. Please try again.&email=" +
+          email +
+          "&password=" +
+          password +
+          "&confirmPassword=" +
+          confirmPassword +
+          "&fullname=" +
+          fullname +
+          "&birthday=" +
+          birthday +
+          "&street=" +
+          street +
+          "&city=" +
+          city +
+          "&postalCode=" +
+          postalCode
+      );
+    }
+    if (createdUser.userId) {
       const newAccount = new Account(createdUser.userId, 500);
 
       await newAccount.createBankAccount();

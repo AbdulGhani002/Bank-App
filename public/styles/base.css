@@ -45,6 +45,10 @@ html {
 body {
   background-color: var(--color-gray-900);
   color: var(--color-primary-500-contrast);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 99vh;
 }
 header {
   background: linear-gradient(
@@ -52,16 +56,14 @@ header {
     var(--color-gray-1000),
     var(--color-gray-900)
   );
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
 }
 header h2 a {
   color: var(--color-primary-500-contrast);
   text-decoration: none;
   font-size: 2rem;
-}
-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
 }
 header nav ul {
   display: flex;
@@ -71,6 +73,8 @@ header nav ul {
 }
 
 header nav ul li {
+  margin: 1rem;
+  padding: 0.3rem;
   margin: 1rem;
   padding: 0.3rem;
 }
@@ -102,7 +106,8 @@ main p {
   margin: 1rem;
 }
 
-main a,footer a {
+main a,
+footer a {
   color: var(--color-primary-900);
   text-decoration: none;
 }
@@ -147,13 +152,6 @@ ul {
   list-style-type: none;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 99vh;
-}
-
 footer {
   background-color: var(--color-gray-1000);
   color: var(--color-gray-100);
@@ -163,7 +161,7 @@ footer {
   height: 3.5rem;
   text-align: center;
   margin-top: auto;
-  opacity:0.75;
+  opacity: 0.75;
   margin-bottom: 0;
 }
 #menu-toggle {
@@ -181,11 +179,6 @@ header nav ul {
   align-items: center;
   justify-content: space-around;
   list-style: none;
-}
-
-header nav ul li {
-  margin: 1rem;
-  padding: 0.3rem;
 }
 
 @media screen and (max-width: 768px) {
@@ -218,35 +211,34 @@ header nav ul li {
 
 @media screen and (max-width: 768px) {
   main {
-    width: 90%; 
+    width: 90%;
     margin-top: 6rem;
   }
 
   header h2 a {
-    font-size: 1.5rem; 
+    font-size: 1.5rem;
   }
 
   header nav ul li {
-    margin: 0.5rem; 
+    margin: 0.5rem;
   }
 
   #menu-icon {
-    font-size: 1.3rem; 
+    font-size: 1.3rem;
   }
 }
 
-
 @media screen and (max-width: 576px) {
   main {
-    width: 95%; 
-    margin-top: 4rem; 
+    width: 95%;
+    margin-top: 4rem;
   }
 
   header h2 a {
-    font-size: 1.3rem; 
+    font-size: 1.3rem;
   }
 
   #menu-icon {
-    font-size: 1.2rem; 
+    font-size: 1.2rem;
   }
 }

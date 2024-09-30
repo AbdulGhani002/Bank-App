@@ -8,6 +8,7 @@ body {
 }
 main {
   border-radius: 0;
+  padding: 20px;
 }
 header,
 footer {
@@ -20,10 +21,6 @@ footer {
 header h1,
 footer h1 {
   font-size: 1.5em;
-}
-
-main {
-  padding: 20px;
 }
 
 .statement {
