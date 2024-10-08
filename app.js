@@ -8,7 +8,7 @@ const baseRoutes = require("./routes/base.routes");
 const authRoutes = require("./routes/auth.routes");
 const accountRoutes = require("./routes/account.routes");
 const cookieParser = require("cookie-parser");
-const { checkUser, requireAuth } = require("./middlewares/auth-middleware");
+const { checkUser } = require("./middlewares/auth-middleware");
 
 const errorHandlerMiddleware = require("./middlewares/error-handler");
 
