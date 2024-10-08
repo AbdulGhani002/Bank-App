@@ -1,4 +1,4 @@
-const CryptoJS = require("crypto-js");
+const {decrypt} = require("../utils/crypt")
 const User = require("../models/user.model");
 const Account = require("../models/account.model");
 const getUserId = (req) => {
@@ -15,11 +15,7 @@ const getAccountId = (req) => {
   }
   return JSON.parse(encryptedExistingAccountId);
 };
-const decrypt = (id) => {
-  return CryptoJS.AES.decrypt(id, process.env.SECRET_KEY).toString(
-    CryptoJS.enc.Utf8
-  );
-};
+
 const getIndex = (req, res) => {
   res.render("index", {
     userData: null,
