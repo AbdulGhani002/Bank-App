@@ -1,7 +1,19 @@
 <%- include('../../shared/includes/head' , {title:"Create Account - Moneyy"}) %>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<meta name="google-signin-client_id" content="304379979277-qsbt6sf6s69oh7tnrhg2renc47vrb4b8.apps.googleusercontent.com">
 <link rel="stylesheet" href="/styles/auth.css">
 </head>
 <body>
+    <script>
+        function onSignIn(googleUser) {
+  var profile = googleUser.getBasicProfile();
+  console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+  console.log('Name: ' + profile.getName());
+  console.log('Image URL: ' + profile.getImageUrl());
+  console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+}
+
+    </script>
 <%- include("../../shared/includes/header") %>
 <main>
     <h1>Create New Account</h1>
@@ -31,6 +43,7 @@
         <label for="confirmPassword">Confirm Password: </label>
         <input type="password" name="confirmPassword" value="<%=confirmPassword%>" id="confirmPassword" required>
         <button>Create New Account</button>
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
     </form>
     <p>Or <a href="/login">Login Instead</a></p>
 </main>
