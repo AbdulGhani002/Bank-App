@@ -14,24 +14,28 @@
 
             <h2>Statement Period: <%=firstTransactionDate%> - <%=lastTransactionDate%></h2>
         </div>
-        <div class="statement-body">
-            <table>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Counterpart</th>
-                    <th>Amount</th>
-                </tr>
-                <% for (const t of transactions) { %>
-                <tr>
-                    <td><%= t.formattedDate %></td>
-                    <td><%= t.transactionType %> (<%= t.senderAccountNumber === accountDetails.accountNumber ? 'Sent' : 'Received' %>)</td>
-                    <td><%= t.counterpartName || (t.senderAccountNumber === accountDetails.accountNumber ? t.receiverAccountNumber : t.senderAccountNumber) || '-' %></td>
-                    <td><%= t.amount %></td>
-                </tr>
-                <% } %>
-            </table>
-        </div>
+                <div class="statement-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Counterpart</th>
+                                    <th scope="col">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (const t of transactions) { %>
+                                <tr>
+                                    <td><%= t.formattedDate %></td>
+                                    <td><%= t.transactionType %> (<%= t.senderAccountNumber === accountDetails.accountNumber ? 'Sent' : 'Received' %>)</td>
+                                    <td><%= t.counterpartName || (t.senderAccountNumber === accountDetails.accountNumber ? t.receiverAccountNumber : t.senderAccountNumber) || '-' %></td>
+                                    <td><%= t.amount %></td>
+                                </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                </div>
         <div class="statement-footer">
             <p>Generated on: <%=currentDate%></p>
         </div>

@@ -291,10 +291,18 @@ async function verifyEmail(req, res, next) {
   const token = req.query.token;
 
   try {
+    // Validate and hash the token before querying DB (avoid direct user input in queries)
+    const isHex64 = typeof token === 'string' && /^[A-Fa-f0-9]{64}$/.test(token);
+    if (!isHex64) {
+      return res.status(404).render("shared/error", {
+        message: "Invalid verification token.",
+      });
+    }
+    const hashed = crypto.createHash('sha256').update(token).digest('hex');
     const user = await db
       .getDb()
       .collection("Users")
-      .findOne({ verificationToken: { $eq: token } });
+      .findOne({ verificationToken: hashed });
 
     if (!user) {
       return res.status(404).render("shared/error", {

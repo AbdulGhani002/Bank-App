@@ -36,7 +36,11 @@ class User {
 
   async signup() {
     const hashedPassword = await bcrypt.hash(this.password, 12);
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const rawVerificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationToken = crypto
+      .createHash('sha256')
+      .update(rawVerificationToken)
+      .digest('hex');
 
     try {
       const newUser = {
@@ -49,8 +53,9 @@ class User {
         verificationToken: verificationToken,
       };
 
-      const result = await db.getDb().collection("Users").insertOne(newUser);
-      return { success: true, userId: result.insertedId, verificationToken: verificationToken };
+  const result = await db.getDb().collection("Users").insertOne(newUser);
+  // Return raw token for email, but only store hashed token in DB
+  return { success: true, userId: result.insertedId, verificationToken: rawVerificationToken };
     } catch (error) {
       console.error("Error in signup:", error);
       return { success: false };

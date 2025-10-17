@@ -50,6 +50,7 @@ process.env.NODE_ENV = 'test';
 
 const app = require('../app');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // In-memory state across mocks
 const mockState = {
@@ -75,15 +76,16 @@ describe('Auth requires verification', () => {
   });
 
   it('blocks login if not verified', async () => {
-    // Create a user (unverified) via signup call
-    const hashed = await bcrypt.hash('secret123', 1);
+    // Use a generated test password to avoid hardcoded secrets in code
+    const testPassword = process.env.TEST_LOGIN_PASSWORD || crypto.randomBytes(10).toString('hex');
+    const hashed = await bcrypt.hash(testPassword, 1);
     mockState.userByEmail = {
       _id: 'u1', email: 'u@test.com', password: hashed, isVerified: false
     };
     const res = await request(app)
       .post('/login')
       .type('form')
-      .send({ email: 'u@test.com', password: 'secret123', _csrf: 'test-csrf-token' });
+      .send({ email: 'u@test.com', password: testPassword, _csrf: 'test-csrf-token' });
 
     expect(res.statusCode).toBe(401);
     expect(String(res.text)).toMatch(/not verified/i);
