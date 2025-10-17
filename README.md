@@ -2,15 +2,54 @@
 
 ## Overview
 
-Bank-App is a comprehensive solution for managing personal finances, providing features such as user account management, transaction tracking, and secure banking operations.
+Bank-App is a secure, full‑stack Node.js/Express banking demo with EJS views and MongoDB. It supports JWT‑based authentication, verified sign‑ups, protected account operations, and rich transaction history with statements/PDF export. It also includes strong security headers, CSRF protection, rate limiting, PWA support, diagnostics, and automated tests with CI.
 
 ## Features
 
-- User authentication and authorization
-- Account management (view balances, transaction history)
-- Fund transfers between accounts
-- Secure data handling and encryption
-- Responsive user interface
+### Authentication & Authorization
+- JWT authentication with secure, httpOnly cookies
+- Email verification on signup (login requires verified accounts)
+- Optional Two‑Factor Authentication (TOTP via speakeasy/qrcode)
+- Session usage only for 2FA flow; app is otherwise stateless via JWT
+
+### Account & Transactions
+- One account per user (enforced with unique constraint)
+- Deposit funds, make payments to other account numbers
+- Robust validation (account number format, self‑payment prevention, insufficient funds)
+- Transaction storage with sender/receiver account numbers
+- Transactions list enriched with counterparty name and email
+- Transaction details page with sender/receiver identities
+
+### Statements & PDF
+- Financial statement page aggregated by account number
+- Nicely styled PDF export with header, summary, and paginated rows
+
+### Security
+- Helmet with hardened CSP:
+	- `upgradeInsecureRequests` and `blockAllMixedContent` (prevents mixed content)
+	- `frameAncestors 'none'` (prevents clickjacking)
+	- HSTS, frameguard deny, and `no-referrer` policy
+- CSRF protection via cookies (bypassed only in tests)
+- Express rate limiting with proxy awareness
+- Trusts only first proxy hop (`app.set('trust proxy', 1)`)
+
+### Email
+- Nodemailer utility with single `sendEmail(to, subject, text)` export
+- Transport `verify()` helper for diagnostics
+- Signup verification email with token link
+
+### Diagnostics & Admin
+- `/health` and `/health/email` endpoints
+- Admin‑only route listing at `/routes`
+- Admin email test and linkage diagnostics (see controllers/routes)
+
+### PWA
+- `manifest.json` and `service-worker.js` for basic offline caching of static assets
+
+### Testing & CI
+- Jest + Supertest automated tests for routes and features
+- CSRF bypass in test env to enable POST route testing
+- GitHub Actions workflow to run tests on push/PR to `master`
 
 ## Installation
 
@@ -20,16 +59,27 @@ Clone the repository:
 git clone https://github.com/AbdulGhani002/Bank-App.git
 ```
 
-Navigate to the project directory:
+Navigate to the project directory and install dependencies:
 
 ```bash
 cd Bank-App
+npm ci
 ```
 
-Install dependencies:
+Create a `.env` file with the required settings (examples):
 
 ```bash
-npm install
+PORT=5500
+JWT_SECRET=your_jwt_secret
+SESSION_SECRET=your_session_secret
+MONGODB_URL=mongodb://localhost:27017/bankapp
+
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_USER=apikey_or_username
+EMAIL_PASS=secret
+EMAIL_FROM="Bank App <no-reply@example.com>"
+ADMIN_EMAIL=admin@example.com
 ```
 
 ## Usage
@@ -40,15 +90,34 @@ Start the application:
 npm start
 ```
 
-Open your browser and go to  `http://127.0.0.1:3000.`
+By default the app listens on port 5500; visit:
+
+```
+http://localhost:5500/
+```
+
+## Development
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+Run specific test folders:
+
+```bash
+npm run test:unit
+npm run test:e2e
+```
 
 ## Contributing
 
-Contributions are welcome!
+Contributions are welcome! Please open an issue or PR.
 
 ## License
 
-This project is licensed under the GNU Lesser General Public License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache-2.0 License — see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 

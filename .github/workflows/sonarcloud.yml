@@ -2,32 +2,37 @@ name: SonarCloud
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
-  sonarcloud:
+  analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
         with:
-          node-version: '22'
-
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Install dependencies
-        run: npm install 
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        run: npm ci
+      - name: Run tests with coverage
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          NODE_ENV: test
+          SESSION_SECRET: test
+          JWT_SECRET: test
+        run: npm run test:coverage --silent
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # set in repo secrets
         with:
           args: >
-            -Dsonar.projectKey=your_project_key
-            -Dsonar.organization=your_organization_key
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.exclusions=**/node_modules/**,public/**
+            -Dsonar.sources=.
+            -Dsonar.tests=tests
+            -Dsonar.test.inclusions=tests/**/*.test.js
