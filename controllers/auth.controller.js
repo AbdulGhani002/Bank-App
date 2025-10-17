@@ -294,7 +294,7 @@ async function verifyEmail(req, res, next) {
     const user = await db
       .getDb()
       .collection("Users")
-      .findOne({ verificationToken: token });
+      .findOne({ verificationToken: { $eq: token } });
 
     if (!user) {
       return res.status(404).render("shared/error", {
