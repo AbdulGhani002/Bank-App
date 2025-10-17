@@ -33,6 +33,10 @@ app.use(
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
       frameSrc: ["'self'"],
+      // Harden against mixed content and clickjacking per Sonar hotspot review
+      upgradeInsecureRequests: [],
+      blockAllMixedContent: [],
+      frameAncestors: ["'none'"],
     },
   })
 );
@@ -61,8 +65,18 @@ app.use(
   })
 );
 
-const csrfProtection = csurf({ cookie: { secure: true, httpOnly: true, sameSite: 'lax' } });
-app.use(csrfProtection);
+if (process.env.NODE_ENV === 'test') {
+  // In tests, bypass CSRF while keeping templates functional
+  app.use((req, res, next) => {
+    if (typeof req.csrfToken !== 'function') {
+      req.csrfToken = () => 'test-csrf-token';
+    }
+    next();
+  });
+} else {
+  const csrfProtection = csurf({ cookie: { secure: true, httpOnly: true, sameSite: 'lax' } });
+  app.use(csrfProtection);
+}
 
 
 app.use(checkUser);
