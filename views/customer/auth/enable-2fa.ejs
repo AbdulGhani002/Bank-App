@@ -1,0 +1,25 @@
+<%- include('../shared/includes/head', { pageTitle: 'Enable 2FA' }) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+  <%- include('../shared/includes/header') %>
+  <main>
+    <h1>Enable Two-Factor Authentication</h1>
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <p>Scan the QR code with your authenticator app and enter the token to enable 2FA.</p>
+    <img src="<%= qrCode %>" alt="QR Code">
+    <form action="/enable-2fa" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="secret" value="<%= secret %>">
+      <div>
+        <label for="token">Token</label>
+        <input type="text" id="token" name="token" required>
+      </div>
+      <button type="submit" class="btn">Enable 2FA</button>
+    </form>
+  </main>
+  <%- include('../shared/includes/footer') %>
+</body>
+</html>

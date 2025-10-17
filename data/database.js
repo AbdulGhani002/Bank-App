@@ -1,10 +1,10 @@
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
-const uri = process.env.MONGO_URL;
+const uri = process.env.MONGO_URL || process.env.MONGODB_URL;
 
 if (!uri) {
-  throw new Error("MongoDB connection URI is not provided. Make sure you set the MONGO_URL environment variable.");
+  throw new Error("MongoDB connection URI is not provided. Set MONGO_URL or MONGODB_URL in your environment.");
 }
 
 const client = new MongoClient(uri, {

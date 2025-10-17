@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
-const { v4: uuidv4 } = require("uuid");
 const db = require("../data/database");
+const crypto = require("crypto");
+
 class User {
   constructor(email, password, fullname, birthday, street, city, postalCode) {
     this.email = email;
@@ -12,13 +13,15 @@ class User {
       city: city,
       postalCode: postalCode,
     };
+    this.isVerified = false;
+    this.verificationToken = null;
   }
 
   async getUserByEmail(email) {
     return await db.getDb().collection("Users").findOne({ email: { $eq: email } });
   }
-  static async getUserById(userId) {
-    return await db.getDb().collection("Users").findOne({ userId: userId });
+  static async getUserById(id) {
+    return await db.getDb().collection("Users").findOne({ _id: id });
   }
   async userAlreadyExists() {
     try {
@@ -32,28 +35,25 @@ class User {
   
 
   async signup() {
-    try {
-      const hashedPassword = await bcrypt.hash(this.password, 12);
-      const userId = uuidv4();
+    const hashedPassword = await bcrypt.hash(this.password, 12);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
+    try {
       const newUser = {
-        userId: userId,
         email: this.email,
         password: hashedPassword,
         name: this.name,
+        birthday: this.birthday,
         address: this.address,
+        isVerified: this.isVerified,
+        verificationToken: verificationToken,
       };
 
-      const alreadyExists = await this.userAlreadyExists();
-      if (alreadyExists) {
-        return { success: false, message: "User already exists" };
-      }
-
-      await db.getDb().collection("Users").insertOne(newUser);
-
-      return { success: true };
+      const result = await db.getDb().collection("Users").insertOne(newUser);
+      return { success: true, userId: result.insertedId, verificationToken: verificationToken };
     } catch (error) {
-      throw new Error("Internal Server Error");
+      console.error("Error in signup:", error);
+      return { success: false };
     }
   }
 
@@ -61,12 +61,13 @@ class User {
     return bcrypt.compare(this.password, hashedPassword);
   }
   async getAccountDetails(enteredUser){
-    const accountDetails = await db.getDb().collection('Accounts').findOne({accountId:enteredUser.userId});
+    const accountDetails = await db.getDb().collection('Accounts').findOne({ userId: enteredUser._id });
     return accountDetails;
   }
   async getDetails(accountNumber){
-    const accountDetails = await db.getDb().collection('Accounts').findOne({accountNumber:accountNumber});
-    return db.getDb().collection('Users').findOne({userId:accountDetails.accountId})
+    const accountDetails = await db.getDb().collection('Accounts').findOne({ accountNumber: accountNumber });
+    if (!accountDetails) return null;
+    return db.getDb().collection('Users').findOne({ _id: accountDetails.userId });
   }
 }
 

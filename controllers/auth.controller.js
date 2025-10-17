@@ -1,9 +1,17 @@
 const CryptoJs = require("crypto-js");
 const User = require("../models/user.model");
-const validation = require("../utils/validation");
 const Account = require("../models/account.model");
+const authMiddleware = require("../middlewares/auth-middleware");
+const validation = require("../utils/validation");
+const sendEmail = require("../utils/email");
+const crypto = require("crypto");
+const db = require("../data/database");
+const speakeasy = require("speakeasy");
+const qrcode = require("qrcode");
+const emailValidator = require("email-validator");
 const logger = require("../utils/logger");
 const jwt = require("jsonwebtoken");
+const { redirectWithError } = require("../utils/controller-utils");
 
 function getSignup(req, res) {
   if (
@@ -40,7 +48,7 @@ function getSignup(req, res) {
     city: null,
     postalCode: null,
     userData:null,
-    accountDetails:null,
+    accountDetails:null
   });
 }
 
@@ -85,270 +93,244 @@ async function login(req, res, next) {
   }
 
   if (!existingUser) {
-    res.redirect(
-      "/login?error=Invalid email or password. Please try again.&email=" +
-        email +
-        "&password=" +
-        password
+    return redirectWithError(
+      res,
+      "/login",
+      "Invalid email or password. Please try again.",
+      { email, password }
     );
-    return;
+  }
+
+  if (!existingUser.isVerified) {
+    return res.status(401).render("shared/error", {
+      message: "Your account is not verified. Please check your email.",
+    });
   }
 
   const passwordIsCorrect = await user.hasMatchingPassword(
     existingUser.password
   );
   if (!passwordIsCorrect) {
-    res.redirect(
-      "/login?error=Invalid email or password. Please try again.&" +
-        "email=" +
-        email +
-        "&password=" +
-        password
+    return redirectWithError(
+      res,
+      "/login",
+      "Invalid email or password. Please try again.",
+      { email, password }
     );
-    return;
   }
 
-  let existingAccount;
-  try {
-    existingAccount = await user.getAccountDetails(existingUser);
-  } catch (error) {
-    console.log(error);
+  if (existingUser.twoFactorEnabled) {
+    req.session.userId = existingUser._id;
+    return res.redirect("/verify-2fa");
   }
-  const token = createToken(existingUser.userId);
-  res.cookie("jwt", token, {
-    maxAge: 3 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
+
+  const userToken = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+    expiresIn: "24h",
   });
-  const existingUserId = CryptoJs.AES.encrypt(
-    existingUser.userId,
-    process.env.SECRET_KEY
-  ).toString();
-  const existingAccountId = CryptoJs.AES.encrypt(
-    existingAccount.accountId,
-    process.env.SECRET_KEY
-  ).toString();
-  res.cookie("existingUserId", JSON.stringify(existingUserId), { httpOnly: true, secure: true });
-  res.cookie("existingAccountId", JSON.stringify(existingAccountId), { httpOnly: true, secure: true });
-
+  res.cookie("jwt", userToken, {
+    httpOnly: true,
+    secure: true,
+    maxAge: 24 * 60 * 60 * 1000,
+  });
   res.redirect("/home");
 }
 
-async function createUserAndAccount(req, res) {
-  const {
+function getEnable2FA(req, res) {
+  const secret = speakeasy.generateSecret({
+    name: "Mianwali Code House Bank",
+  });
+  qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
+    res.render("customer/auth/enable-2fa", {
+      secret: secret.base32,
+      qrCode: data_url,
+      csrfToken: req.csrfToken(),
+      error: null,
+      userData: res.locals.user,
+      accountDetails: null,
+    });
+  });
+}
+
+async function enable2FA(req, res) {
+  const { secret, token } = req.body;
+  const verified = speakeasy.totp.verify({
+    secret: secret,
+    encoding: "base32",
+    token: token,
+  });
+
+  if (verified) {
+    await db
+      .getDb()
+      .collection("Users")
+      .updateOne(
+        { _id: res.locals.user._id },
+        { $set: { twoFactorSecret: secret, twoFactorEnabled: true } }
+      );
+    res.redirect("/home");
+  } else {
+    qrcode.toDataURL(
+      `otpauth://totp/Mianwali%20Code%20House%20Bank?secret=${secret}`,
+      (err, data_url) => {
+        res.render("customer/auth/enable-2fa", {
+          secret: secret,
+          qrCode: data_url,
+          csrfToken: req.csrfToken(),
+          error: "Invalid token. Please try again.",
+          userData: res.locals.user,
+          accountDetails: null,
+        });
+      }
+    );
+  }
+}
+
+function getVerify2FA(req, res) {
+  res.render("customer/auth/verify-2fa", {
+    csrfToken: req.csrfToken(),
+    error: null,
+    userData: null,
+    accountDetails: null,
+  });
+}
+
+async function verify2FA(req, res) {
+  const { token } = req.body;
+  const user = await db
+    .getDb()
+    .collection("Users")
+    .findOne({ _id: new ObjectId(req.session.userId) });
+
+  const verified = speakeasy.totp.verify({
+    secret: user.twoFactorSecret,
+    encoding: "base32",
+    token: token,
+  });
+
+  if (verified) {
+    const userToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+    res.cookie("jwt", userToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    res.redirect("/home");
+  } else {
+    res.render("customer/auth/verify-2fa", {
+      csrfToken: req.csrfToken(),
+      error: "Invalid token. Please try again.",
+      userData: null,
+      accountDetails: null,
+    });
+  }
+}
+
+function logout(req, res) {
+  res.cookie("jwt", "", { maxAge: 1 });
+  res.redirect("/");
+}
+
+async function createUserAndAccount(req, res, next) {
+  const { email, password, fullname, birthday, street, city, postalCode } =
+    req.body;
+
+  if (!emailValidator.validate(email)) {
+    return res.status(400).render("shared/error", {
+      message: "Invalid email address.",
+    });
+  }
+
+  const user = new User(
     email,
     password,
     fullname,
     birthday,
     street,
     city,
-    postalCode,
-    confirmPassword,
-  } = req.body;
+    postalCode
+  );
 
   try {
-    const newUser = new User(
-      email,
-      password,
-      fullname,
-      birthday,
-      street,
-      city,
-      postalCode
-    );
-    if (
-      !validation.userDetailsAreValid(
-        email,
-        password,
-        fullname,
-        street,
-        postalCode,
-        city
-      )
-    ) {
-      res.redirect(
-        "/signup?error=Invalid input. Please try again.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
-      return;
-    }
-    if (!validation.passwordIsConfirmed(password, confirmPassword)) {
-      res.redirect(
-        "/signup?error=Passwords do not match. Please try again.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
-      return;
-    }
-    const userExists = await newUser.userAlreadyExists();
+    const userExists = await user.userAlreadyExists();
     if (userExists) {
-      return res.redirect(
-        "/signup?error=User already exists. Please login.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
+      return res.status(409).render("shared/error", {
+        message: "User already exists.",
+      });
     }
 
-    const signupResult = await newUser.signup();
-    if (!signupResult.success) {
-      return res.redirect(
-        "/signup?error=Error creating user. Please try again.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
-    }
+    const result = await user.signup();
+    if (result.success) {
+      await Account.create(result.userId);
 
-    const createdUser = await newUser.getUserByEmail(email);
+      const verificationLink = `http://localhost:5500/verify-email?token=${result.verificationToken}`;
+      try {
+        await sendEmail(
+          email,
+          "Verify Your Email",
+          `Please click this link to verify your email: ${verificationLink}`
+        );
+      } catch (error) {
+        console.error("Failed to send verification email:", error);
+        // Optionally, handle the error, e.g., by showing a message to the user
+      }
 
-    if(!createdUser){
-      return res.redirect(
-        "/signup?error=Error creating user. Please try again.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
-    }
-    if (createdUser.userId) {
-      const newAccount = new Account(createdUser.userId, 500);
-
-      await newAccount.createBankAccount();
-
-      return res.redirect(
-        "/login?successMessage=Account created successfully. Please login."
+      res.redirect(
+        "/login?message=Registration successful! Please check your email to verify your account."
       );
     } else {
-      return res.redirect(
-        "/signup?error=Error creating account. Please try again.&email=" +
-          email +
-          "&password=" +
-          password +
-          "&confirmPassword=" +
-          confirmPassword +
-          "&fullname=" +
-          fullname +
-          "&birthday=" +
-          birthday +
-          "&street=" +
-          street +
-          "&city=" +
-          city +
-          "&postalCode=" +
-          postalCode
-      );
+      next(new Error("User could not be created."));
     }
   } catch (error) {
-    logger.error("Error during user and account creation:", error);
-
-    return res.redirect(
-      "/signup?error=Error creating user. Please try again.&email=" +
-        email +
-        "&password=" +
-        password +
-        "&confirmPassword=" +
-        confirmPassword +
-        "&fullname=" +
-        fullname +
-        "&birthday=" +
-        birthday +
-        "&street=" +
-        street +
-        "&city=" +
-        city +
-        "&postalCode=" +
-        postalCode
-    );
+    return next(error);
   }
 }
+
+async function verifyEmail(req, res, next) {
+  const token = req.query.token;
+
+  try {
+    const user = await db
+      .getDb()
+      .collection("Users")
+      .findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(404).render("shared/error", {
+        message: "Invalid verification token.",
+      });
+    }
+
+    await db
+      .getDb()
+      .collection("Users")
+      .updateOne(
+        { _id: user._id },
+        { $set: { isVerified: true }, $unset: { verificationToken: "" } }
+      );
+
+    res.redirect("/login?message=Email verified successfully! You can now log in.");
+  } catch (error) {
+    return next(error);
+  }
+}
+
 const createToken = (id) => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
-async function logout(req, res) {
-  res.cookie("existingUserId", "", {
-    maxAge: 1,
-    secure: true,
-    httpOnly: true,
-  });
-  res.cookie("existingAccountId", "", {
-    maxAge: 1,
-    secure: true,
-    httpOnly: true,
-  });
-  res.cookie("jwt", "", {
-    maxAge: 1,
-    secure: true,
-  });
-  res.redirect("/login");
-}
 module.exports = {
-  getSignup,
-  getLogin,
-  login,
-  createUserAndAccount,
-  logout,
+  getSignup: getSignup,
+  getLogin: getLogin,
+  login: login,
+  logout: logout,
+  createUserAndAccount: createUserAndAccount,
+  getEnable2FA: getEnable2FA,
+  enable2FA: enable2FA,
+  getVerify2FA: getVerify2FA,
+  verify2FA: verify2FA,
+  verifyEmail: verifyEmail,
 };
+

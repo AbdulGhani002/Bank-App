@@ -1,12 +1,24 @@
 main {
   margin: 0;
   width: 100%;
-  padding: 0 2rem; 
-  box-sizing: border-box; 
+  padding: 0 2rem;
+  box-sizing: border-box;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 h1 {
-  font-size: 3.25rem; 
+  font-size: 3.25rem;
 }
 
 main ul#home-page-menu {
@@ -23,11 +35,13 @@ main ul#home-page-menu li a {
   color: var(--color-primary-500-contrast);
   margin-bottom: 1.5rem;
   display: flex; 
-  align-items: center; 
+  align-items: center;
+  transition: all 0.3s ease;
 }
 
 main ul#home-page-menu li a:hover {
   color: var(--color-primary-900);
+  transform: scale(1.05);
 }
 
 main ul#home-page-menu li a img {

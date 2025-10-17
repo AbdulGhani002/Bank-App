@@ -5,6 +5,8 @@ const limiter = rateLimit({
     max: 100,
     message: 'Too many requests from this IP, please try again later.',
     headers: true,
+    // Explicitly trust proxy addresses since app enables trust proxy
+    trustProxy: true,
   });
 
   module.exports = {limiter};

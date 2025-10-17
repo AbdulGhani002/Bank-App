@@ -1,0 +1,23 @@
+<%- include('../shared/includes/head', { pageTitle: 'Verify 2FA' }) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+  <%- include('../shared/includes/header') %>
+  <main>
+    <h1>Verify Two-Factor Authentication</h1>
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <p>Enter the token from your authenticator app to log in.</p>
+    <form action="/verify-2fa" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label for="token">Token</label>
+        <input type="text" id="token" name="token" required>
+      </div>
+      <button type="submit" class="btn">Verify</button>
+    </form>
+  </main>
+  <%- include('../shared/includes/footer') %>
+</body>
+</html>

@@ -7,16 +7,21 @@
 <main>
     <h1 id="transaction-heading">Transactions History</h1>
     <ul>
-        <% for (let transaction of transactions) { %>
+        <% for (let t of transactions) { %>
             <li class="transaction-item">
-                <h3><%= transaction.transactionType %></h3>
-                <p>Amount: <%= transaction.amount %></p>
-                <p>Transaction Date: <%= transaction.date %></p>
-                <p>Receiver Account Number: <%= transaction.receiverAccountNumber %></p>
-                <a href="/transactions/<%=transaction._id%>">See Details</a>
+                <h3><%= t.transactionType %> <small>(<%= t.direction === 'out' ? 'Sent' : 'Received' %>)</small></h3>
+                <p>Amount: <%= t.amount %></p>
+                <p>Date: <%= t.formattedDate || t.date %></p>
+                <p>
+                  <%= t.direction === 'out' ? 'To' : 'From' %>:
+                  <strong><%= t.counterpartName || t.counterpartAccountNumber || '-' %></strong>
+                  <% if (t.counterpartEmail) { %>
+                    (<%= t.counterpartEmail %>)
+                  <% } %>
+                </p>
+                <a href="/transactions/<%=t._id%>">See Details</a>
             </li>
         <% } %>
-        
     </ul>
 </main>
 <%- include("../shared/includes/footer")%>

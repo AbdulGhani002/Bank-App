@@ -1,0 +1,28 @@
+<%- include('includes/head') %>
+<%- include('includes/header') %>
+<main class="container" style="padding: 2rem;">
+  <h2>Email Test</h2>
+  <% if (message) { %>
+    <p style="color: green;"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p style="color: red; white-space: pre-wrap;"><%= error %></p>
+  <% } %>
+  <form method="POST" action="/admin/email-test">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div>
+      <label>To</label>
+      <input type="email" name="to" required />
+    </div>
+    <div>
+      <label>Subject</label>
+      <input type="text" name="subject" placeholder="Test Email" />
+    </div>
+    <div>
+      <label>Text</label>
+      <textarea name="text" rows="4" placeholder="This is a test email from Bank-App."></textarea>
+    </div>
+    <button type="submit">Send</button>
+  </form>
+</main>
+<%- include('includes/footer') %>

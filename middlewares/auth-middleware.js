@@ -1,41 +1,32 @@
 const jwt = require("jsonwebtoken");
+const { ObjectId } = require("mongodb");
 const db = require("../data/database");
-const requireAuth = (req, res, next) => {
+
+const checkUser = async (req, res, next) => {
   const userToken = req.cookies.jwt;
   if (userToken) {
-    jwt.verify(userToken, process.env.JWT_SECRET, (err, decodedToken) => {
-      if (!err) {
-        next();
-      } else {
-        console.log(err);
-        res.redirect("/login?error=Login First.");
-      }
-    });
-  } else {
-    res.redirect("/login?error=Invalid email or password. Please try again.");
-  }
-};
-const checkUser = (req, res, next) => {
-  const userToken = req.cookies.jwt;
-  if (userToken) {
-    jwt.verify(userToken, process.env.JWT_SECRET, async (err, decodedToken) => {
-      if (err) {
-        console.log(err.message);
-        res.locals.user = null;
-        next();
-      } else {
-        console.log(decodedToken);
-        const user = await db
-          .getDb()
-          .collection("Users")
-          .findOne({ _id: decodedToken.id });
-        res.locals.user = user;
-        next();
-      }
-    });
+    try {
+      const decodedToken = jwt.verify(userToken, process.env.JWT_SECRET);
+      const user = await db
+        .getDb()
+        .collection("Users")
+        .findOne({ _id: new ObjectId(decodedToken.id) });
+      res.locals.user = user;
+    } catch (err) {
+      console.log(err.message);
+      res.locals.user = null;
+    }
   } else {
     res.locals.user = null;
+  }
+  next();
+};
+
+const requireAuth = (req, res, next) => {
+  if (res.locals.user) {
     next();
+  } else {
+    res.redirect("/login?error=Login First.");
   }
 };
 

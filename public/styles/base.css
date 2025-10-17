@@ -36,6 +36,44 @@ html {
 
   --shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+@media (max-width: 768px) {
+  :root {
+    --space-1: 0.2rem;
+    --space-2: 0.4rem;
+    --space-4: 0.8rem;
+    --space-6: 1.2rem;
+    --space-8: 1.6rem;
+  }
+  header h2 a {
+    font-size: 1.5rem;
+  }
+  header nav ul {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  header nav ul li {
+    margin: 0.5rem 0;
+  }
+  main {
+    width: 95%;
+    margin-top: 6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+  header h2 {
+    margin-bottom: 1rem;
+  }
+  header nav ul {
+    align-items: center;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -231,5 +269,28 @@ footer {
 
   #menu-icon {
     font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --space-1: 0.2rem;
+    --space-2: 0.4rem;
+    --space-4: 0.8rem;
+    --space-6: 1.2rem;
+    --space-8: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+  header h2 {
+    margin-bottom: 1rem;
+  }
+  header nav ul {
+    align-items: center;
   }
 }

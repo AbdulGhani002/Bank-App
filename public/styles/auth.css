@@ -1,8 +1,19 @@
-
 main {
   width: 40%;
-  margin: 7rem auto; 
-  text-align: center; 
+  margin: 7rem auto;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 input {
@@ -12,6 +23,14 @@ input {
   height: 2rem;
   padding: 0.5rem;
   font-size: 1rem;
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-gray-300);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 5px var(--color-primary-500);
 }
 
 label {
@@ -23,19 +42,18 @@ button {
 }
 
 hr {
-  margin: 1rem auto; 
+  margin: 1rem auto;
   width: 60%;
-  max-width: 300px; 
+  max-width: 300px;
   color: var(--color-primary-900);
 }
 
-
 .error, .success {
-  border-radius: 5px; 
+  border-radius: 5px;
   padding: 1rem;
   font-size: 1rem;
-  width: 90%; 
-  max-width: 300px; 
+  width: 90%;
+  max-width: 300px;
   margin: 1rem auto;
   text-align: center;
 }
@@ -50,7 +68,7 @@ hr {
 }
 @media screen and (max-width: 768px) {
   main {
-    width: 60%; 
+    width: 60%;
   }
 }
 

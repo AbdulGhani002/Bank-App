@@ -4,33 +4,53 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "node app.js",
+    "test": "jest --runInBand",
     "start": "npm install && nodemon app.js",
-    "build": "echo 'No build step required' && npm install"
+    "build": "echo 'No build step required' && npm install",
+    "migrate:normalize-accounts": "node ./scripts/migrate-normalize-accounts.js",
+    "migrate:create-index": "node ./scripts/create-index-accounts-userId.js",
+    "test:unit": "jest --runInBand",
+    "test:e2e": "jest --runInBand tests/e2e",
+    "test:all": "jest --runInBand"
   },
   "keywords": [],
-  "author": "Muhammad Abdul Ghani Qureshi",
+  "author": "AbdulGhani002",
   "license": "Apache-2.0",
   "dependencies": {
     "02-bank-app": "file:",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "crypto-js": "^4.2.0",
-    "csurf": "^1.10.0",
+    "csurf": "^1.11.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.4.0",
+    "email-validator": "^2.0.4",
+    "express": "^4.18.2",
+    "express-list-endpoints": "^7.1.1",
+    "express-rate-limit": "^7.2.0",
+    "express-session": "^1.18.0",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "lusca": "^1.7.0",
     "mongodb": "^6.3.0",
+    "nodemailer": "^7.0.9",
     "pdfkit": "^0.15.0",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   },
   "engines": {
-    "node": "16.9.1"
+    "node": "24.9.0"
   }
 }

@@ -18,16 +18,18 @@
             <table>
                 <tr>
                     <th>Date</th>
-                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Counterpart</th>
                     <th>Amount</th>
                 </tr>
-                <%for(const transaction of transactions){%>
+                <% for (const t of transactions) { %>
                 <tr>
-                    <td><%=transaction.formattedDate%></td>
-                    <td><%=transaction.transactionType%></td>
-                    <td><%=transaction.amount%></td>
+                    <td><%= t.formattedDate %></td>
+                    <td><%= t.transactionType %> (<%= t.senderAccountNumber === accountDetails.accountNumber ? 'Sent' : 'Received' %>)</td>
+                    <td><%= t.counterpartName || (t.senderAccountNumber === accountDetails.accountNumber ? t.receiverAccountNumber : t.senderAccountNumber) || '-' %></td>
+                    <td><%= t.amount %></td>
                 </tr>
-                <%}%>
+                <% } %>
             </table>
         </div>
         <div class="statement-footer">

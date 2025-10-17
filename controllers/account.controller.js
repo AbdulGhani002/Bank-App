@@ -4,26 +4,14 @@ const PDFDocument = require("pdfkit");
 const db = require("../data/database");
 const ObjectId = mongodb.ObjectId;
 const Transaction = require("../models/transaction.model");
+const sendEmail = require("../utils/email");
 
 const getDepositMoney = async (req, res) => {
-  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-  const existingUserId = CryptoJS.AES.decrypt(
-    encryptedExistingUserId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const existingAccountId = CryptoJS.AES.decrypt(
-    encryptedExistingAccountId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: existingUserId });
+  const userData = res.locals.user;
   const accountDetails = await db
     .getDb()
     .collection("Accounts")
-    .findOne({ accountId: existingAccountId });
+    .findOne({ userId: new ObjectId(userData._id) });
   if (!userData) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
@@ -48,17 +36,11 @@ const getDepositMoney = async (req, res) => {
 const depositMoney = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    const encryptedExistingAccountId = JSON.parse(
-      req.cookies.existingAccountId
-    );
-    const existingAccountId = CryptoJS.AES.decrypt(
-      encryptedExistingAccountId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
+    const userData = res.locals.user;
     const account = await db
       .getDb()
       .collection("Accounts")
-      .findOne({ accountId: existingAccountId });
+      .findOne({ userId: new ObjectId(userData._id) });
 
     if (!account) {
       return res.status(404).send("Account not found");
@@ -82,6 +64,15 @@ const depositMoney = async (req, res) => {
       account.accountNumber
     );
     transactionRecipt.makeTransaction();
+    try {
+      await sendEmail(
+        res.locals.user.email,
+        "Deposit Confirmation",
+        `You have successfully deposited ${amount} into your account.`
+      );
+    } catch (e) {
+      console.error("Failed to send deposit email:", e);
+    }
 
     res.redirect("/home");
   } catch (error) {
@@ -91,46 +82,24 @@ const depositMoney = async (req, res) => {
 };
 
 const getPaymentPage = async (req, res) => {
-  let userData;
-  let accountDetails;
-  try {
-    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(
-      req.cookies.existingAccountId
-    );
-    const existingUserId = CryptoJS.AES.decrypt(
-      encryptedExistingUserId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
-    const existingAccountId = CryptoJS.AES.decrypt(
-      encryptedExistingAccountId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
-    userData = await db
-      .getDb()
-      .collection("Users")
-      .findOne({ userId: existingUserId });
-    accountDetails = await db
-      .getDb()
-      .collection("Accounts")
-      .findOne({ accountId: existingAccountId });
-    if (!userData) {
-      res.redirect("/login?error=Invalid email or password. Please try again.");
-    }
-    if (!accountDetails) {
-      res.redirect("/login?error=Invalid email or password. Please try again.");
-    }
-    if (req.query.error) {
-      return res.render("customer/make-payments", {
-        userData: userData,
-        csrfToken: req.csrfToken(),
-        accountDetails: accountDetails,
-        error: req.query.error,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    return res.redirect("/login?error=Login to continue");
+  const userData = res.locals.user;
+  const accountDetails = await db
+    .getDb()
+    .collection("Accounts")
+    .findOne({ userId: new ObjectId(userData._id) });
+  if (!userData) {
+    res.redirect("/login?error=Invalid email or password. Please try again.");
+  }
+  if (!accountDetails) {
+    res.redirect("/login?error=Invalid email or password. Please try again.");
+  }
+  if (req.query.error) {
+    return res.render("customer/make-payments", {
+      userData: userData,
+      csrfToken: req.csrfToken(),
+      accountDetails: accountDetails,
+      error: req.query.error,
+    });
   }
   res.render("customer/make-payments", {
     userData: userData,
@@ -154,24 +123,14 @@ const isValidAccountNumber = (accountNumber) => {
 const makePayment = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
-    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(
-      req.cookies.existingAccountId
-    );
-    if (!encryptedExistingUserId || !encryptedExistingAccountId) {
-      return res.redirect("/pay?error=Error Occured! Try Again!!");
-    }
-    const senderAccountId = CryptoJS.AES.decrypt(
-      encryptedExistingAccountId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
+    const userData = res.locals.user;
     const receiverAccountNumber = req.body.recieverAccountNumber;
     const senderAccount = await db
       .getDb()
       .collection("Accounts")
-      .findOne({ accountId: senderAccountId });
+      .findOne({ userId: new ObjectId(userData._id) });
     if (!isValidAccountNumber(receiverAccountNumber)) {
-      return res.redirect("/pay?error=It is a command of DB");
+      return res.redirect("/pay?error=Invalid Account Number");
     }
     const receiverAccount = await db
       .getDb()
@@ -208,11 +167,11 @@ const makePayment = async (req, res) => {
       .getDb()
       .collection("Accounts")
       .updateOne(
-        { accountId: senderAccountId },
+        { userId: new ObjectId(userData._id) },
         { $set: { balance: senderUpdatedBalance } }
       );
     const transactionData = new Transaction(
-      senderAccountId,
+      senderAccount._id,
       "Payment",
       amount,
       new Date(),
@@ -220,6 +179,30 @@ const makePayment = async (req, res) => {
       receiverAccountNumber
     );
     transactionData.makeTransaction();
+    try {
+      await sendEmail(
+        res.locals.user.email,
+        "Payment Confirmation",
+        `You have successfully sent ${amount} to ${receiverAccountNumber}.`
+      );
+    } catch (e) {
+      console.error("Failed to send sender payment email:", e);
+    }
+    const receiver = await db
+      .getDb()
+      .collection("Users")
+      .findOne({ _id: new ObjectId(receiverAccount.userId) });
+    if (receiver && receiver.email) {
+      try {
+        await sendEmail(
+          receiver.email,
+          "Incoming Payment",
+          `You have received ${amount} from ${senderAccount.accountNumber}.`
+        );
+      } catch (e) {
+        console.error("Failed to send receiver payment email:", e);
+      }
+    }
     res.redirect("/home");
   } catch (error) {
     console.error("Error depositing money:", error);
@@ -227,33 +210,59 @@ const makePayment = async (req, res) => {
   }
 };
 const getTransactions = async (req, res) => {
-  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-  const existingUserId = CryptoJS.AES.decrypt(
-    encryptedExistingUserId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const existingAccountId = CryptoJS.AES.decrypt(
-    encryptedExistingAccountId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: existingUserId });
+  const userData = res.locals.user;
   const accountDetails = await db
     .getDb()
     .collection("Accounts")
-    .findOne({ accountId: existingAccountId });
+    .findOne({ userId: new ObjectId(userData._id) });
   if (!userData) {
-    return res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
   }
   if (!accountDetails) {
-    return res.redirect("/login");
+    res.redirect("/login?error=Invalid email or password. Please try again.");
   }
   const transactions = await Transaction.getTransactionsByAccount(
-    existingAccountId
+    accountDetails.accountNumber
   );
+  // Enrich transactions for list view: formatted date, direction, counterpart details
+  const options = {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  const counterpartNumbers = new Set();
+  transactions.forEach((t) => {
+    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
+    t.direction = isSender ? "out" : "in";
+    t.counterpartAccountNumber = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
+    const d = new Date(t.date);
+    t.formattedDate = d.toLocaleString("en-US", options);
+    if (t.counterpartAccountNumber) counterpartNumbers.add(t.counterpartAccountNumber);
+  });
+  const counterpartAccounts = await db
+    .getDb()
+    .collection("Accounts")
+    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
+    .toArray();
+  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
+  const counterpartUsers = await db
+    .getDb()
+    .collection("Users")
+    .find({ _id: { $in: userIds } })
+    .toArray();
+  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
+  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
+  transactions.forEach((t) => {
+    const acc = accountMap.get(t.counterpartAccountNumber);
+    if (acc) {
+      const u = userMap.get(String(acc.userId));
+      t.counterpartName = u?.name || null;
+      t.counterpartEmail = u?.email || null;
+    }
+  });
   res.render("customer/transactions", {
     userData: userData,
     accountDetails: accountDetails,
@@ -263,26 +272,11 @@ const getTransactions = async (req, res) => {
 
 const getTransactionDetails = async (req, res) => {
   try {
-    const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-    const encryptedExistingAccountId = JSON.parse(
-      req.cookies.existingAccountId
-    );
-    const existingUserId = CryptoJS.AES.decrypt(
-      encryptedExistingUserId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
-    const existingAccountId = CryptoJS.AES.decrypt(
-      encryptedExistingAccountId,
-      process.env.SECRET_KEY
-    ).toString(CryptoJS.enc.Utf8);
-    const userData = await db
-      .getDb()
-      .collection("Users")
-      .findOne({ userId: existingUserId });
+    const userData = res.locals.user;
     const senderAccountDetails = await db
       .getDb()
       .collection("Accounts")
-      .findOne({ accountId: existingAccountId });
+      .findOne({ userId: new ObjectId(userData._id) });
     const transactionId = req.params.transactionId;
     if (!userData) {
       return res.redirect("/login");
@@ -307,7 +301,7 @@ const getTransactionDetails = async (req, res) => {
     const receiverUser = await db
       .getDb()
       .collection("Users")
-      .findOne({ userId: receiverAccountDetails.accountId });
+      .findOne({ _id: new ObjectId(receiverAccountDetails.userId) });
     if (!receiverUser) {
       return res.status(404).render("404");
     }
@@ -324,24 +318,11 @@ const getTransactionDetails = async (req, res) => {
   }
 };
 const getStatement = async (req, res) => {
-  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-  const existingUserId = CryptoJS.AES.decrypt(
-    encryptedExistingUserId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const existingAccountId = CryptoJS.AES.decrypt(
-    encryptedExistingAccountId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: existingUserId });
+  const userData = res.locals.user;
   const accountDetails = await db
     .getDb()
     .collection("Accounts")
-    .findOne({ accountId: existingAccountId });
+    .findOne({ userId: new ObjectId(userData._id) });
   if (!userData) {
     return res.redirect("/login");
   }
@@ -349,7 +330,7 @@ const getStatement = async (req, res) => {
     return res.redirect("/login");
   }
   const transactions = await Transaction.getTransactionsByAccount(
-    existingAccountId
+    accountDetails.accountNumber
   );
   if (
     transactions.length == 0 ||
@@ -396,12 +377,38 @@ const getStatement = async (req, res) => {
       month: "long",
       day: "numeric",
     });
-  transactions.forEach((transaction) => {
-    const transactionDate = new Date(transaction.date);
-    transaction.formattedDate = transactionDate.toLocaleString(
-      "en-US",
-      options
-    );
+  // Enrich transactions with formatted date and counterpart details
+  const counterpartNumbers = new Set();
+  transactions.forEach((t) => {
+    const transactionDate = new Date(t.date);
+    t.formattedDate = transactionDate.toLocaleString("en-US", options);
+    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
+    const counterpart = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
+    if (counterpart) counterpartNumbers.add(counterpart);
+  });
+  // Batch load counterpart accounts and users
+  const counterpartAccounts = await db
+    .getDb()
+    .collection("Accounts")
+    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
+    .toArray();
+  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
+  const counterpartUsers = await db
+    .getDb()
+    .collection("Users")
+    .find({ _id: { $in: userIds } })
+    .toArray();
+  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
+  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
+  transactions.forEach((t) => {
+    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
+    const counterpartNo = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
+    const acc = accountMap.get(counterpartNo);
+    if (acc) {
+      const user = userMap.get(String(acc.userId));
+      t.counterpartName = user?.name || null;
+      t.counterpartEmail = user?.email || null;
+    }
   });
 
   let currentDate = new Date();
@@ -416,24 +423,11 @@ const getStatement = async (req, res) => {
   });
 };
 const generatePDF = async (req, res) => {
-  const encryptedExistingUserId = JSON.parse(req.cookies.existingUserId);
-  const encryptedExistingAccountId = JSON.parse(req.cookies.existingAccountId);
-  const existingUserId = CryptoJS.AES.decrypt(
-    encryptedExistingUserId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const existingAccountId = CryptoJS.AES.decrypt(
-    encryptedExistingAccountId,
-    process.env.SECRET_KEY
-  ).toString(CryptoJS.enc.Utf8);
-  const userData = await db
-    .getDb()
-    .collection("Users")
-    .findOne({ userId: existingUserId });
+  const userData = res.locals.user;
   const accountDetails = await db
     .getDb()
     .collection("Accounts")
-    .findOne({ accountId: existingAccountId });
+    .findOne({ userId: new ObjectId(userData._id) });
   if (!userData) {
     return res.redirect("/login");
   }
@@ -441,7 +435,7 @@ const generatePDF = async (req, res) => {
     return res.redirect("/login");
   }
   const transactions = await Transaction.getTransactionsByAccount(
-    existingAccountId
+    accountDetails.accountNumber
   );
   if (
     transactions.length == 0 ||
@@ -468,48 +462,94 @@ const generatePDF = async (req, res) => {
     second: "numeric",
   };
   transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-  transactions.forEach((transaction) => {
-    const transactionDate = new Date(transaction.date);
-    transaction.formattedDate = transactionDate.toLocaleString(
-      "en-US",
-      options
-    );
+  // Enrich for PDF: formatted date + counterpart details
+  const counterpartNumbers = new Set();
+  transactions.forEach((t) => {
+    const transactionDate = new Date(t.date);
+    t.formattedDate = transactionDate.toLocaleString("en-US", options);
+    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
+    const counterpart = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
+    if (counterpart) counterpartNumbers.add(counterpart);
+  });
+  const counterpartAccounts = await db
+    .getDb()
+    .collection("Accounts")
+    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
+    .toArray();
+  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
+  const counterpartUsers = await db
+    .getDb()
+    .collection("Users")
+    .find({ _id: { $in: userIds } })
+    .toArray();
+  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
+  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
+  transactions.forEach((t) => {
+    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
+    const counterpartNo = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
+    const acc = accountMap.get(counterpartNo);
+    if (acc) {
+      const user = userMap.get(String(acc.userId));
+      t.counterpartName = user?.name || null;
+      t.counterpartEmail = user?.email || null;
+    }
   });
   let currentDate = new Date();
   currentDate = currentDate.toLocaleDateString("en-US", options);
-  const doc = new PDFDocument();
+  // Styled PDF generation
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
     `attachment; filename=${userData.name}-statement.pdf`
   );
   doc.pipe(res);
-  doc.fontSize(20).text("Financial Statement", {
-    align: "center",
+  // Header band
+  doc.rect(40, 40, doc.page.width - 80, 60).fill('#1f2937');
+  doc.fillColor('#ffffff').fontSize(22).text('Financial Statement', 50, 55, { align: 'left' });
+  doc.fillColor('#ffffff').fontSize(10).text(`Generated: ${currentDate}`, 50, 85, { align: 'left' });
+
+  // Reset fill
+  doc.fillColor('#000000');
+  doc.moveDown(3);
+  // Account summary box
+  const yStart = 120;
+  doc.roundedRect(40, yStart, doc.page.width - 80, 80, 8).stroke('#e5e7eb');
+  doc.fontSize(12)
+    .text(`Name: ${userData.name}`, 55, yStart + 12)
+    .text(`Email: ${userData.email}`, 55, yStart + 30)
+    .text(`Account: ${accountDetails.accountNumber}`, 55, yStart + 48)
+    .text(`Balance: ${accountDetails.balance}`, 320, yStart + 12)
+    .text(`Period: Full History`, 320, yStart + 30);
+
+  // Transactions table header
+  const tableTop = yStart + 110;
+  const colX = [50, 160, 260, 360, 470];
+  doc.rect(40, tableTop - 20, doc.page.width - 80, 24).fill('#f3f4f6');
+  doc.fillColor('#111827').fontSize(11);
+  doc.text('Date', colX[0], tableTop - 16)
+     .text('Type', colX[1], tableTop - 16)
+     .text('Amount', colX[2], tableTop - 16)
+     .text('Sender', colX[3], tableTop - 16)
+     .text('Receiver', colX[4], tableTop - 16);
+
+  // Rows
+  let y = tableTop + 6;
+  doc.fillColor('#000000').fontSize(10);
+  transactions.forEach((t, idx) => {
+    if (y > doc.page.height - 80) {
+      doc.addPage();
+      y = 60;
+    }
+    doc.text(t.formattedDate, colX[0], y, { width: 100 })
+       .text(t.transactionType, colX[1], y, { width: 90 })
+       .text(String(t.amount), colX[2], y, { width: 80 })
+       .text(t.senderAccountNumber || '-', colX[3], y, { width: 100 })
+       .text(t.receiverAccountNumber || '-', colX[4], y, { width: 120 });
+    y += 18;
   });
-  doc.fontSize(15).text(`Name: ${userData.name}`);
-  doc.text(`Email: ${userData.email}`);
-  doc.text(`Account Number: ${accountDetails.accountNumber}`);
-  doc.text(`Account Balance: ${accountDetails.balance}`);
-  doc.text(`Current Date: ${currentDate}`, {
-    align: "right",
-  });
-  doc.moveDown();
-  doc.fontSize(20).text("Transactions", {
-    align: "center",
-  });
-  doc.moveDown();
-  transactions.forEach((transaction, index) => {
-    doc.fontSize(15).text(`Transaction ${index + 1}`);
-    doc.text(`Transaction Type: ${transaction.transactionType}`);
-    doc.text(`Amount: ${transaction.amount}`);
-    doc.text(`Date: ${transaction.formattedDate}`);
-    doc.text(`Sender Account Number: ${transaction.senderAccountNumber}`);
-    doc.text(`Receiver Account Number: ${transaction.receiverAccountNumber}`);
-    doc.moveDown();
-  });
+
   doc.end();
-  res.download("document.pdf");
 };
 module.exports = {
   getDepositMoney,

@@ -4,7 +4,12 @@ const baseController = require("../controllers/base.controller");
 const authMiddleware = require("../middlewares/auth-middleware");
 const router = express.Router();
 
-router.get("/", limiter, baseController.getIndex);
+console.log("Base router loaded."); 
+router.get("/", limiter, (req, res, next) => {
+    console.log("Request received for /"); 
+    baseController.getIndex(req, res, next);
+});
+
 router.get(
   "/home",
   authMiddleware.requireAuth,

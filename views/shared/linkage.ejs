@@ -1,0 +1,13 @@
+<%- include('includes/head') %>
+<%- include('includes/header') %>
+<main class="container" style="padding: 2rem;">
+  <h2>Linkage Diagnostics</h2>
+  <p><strong>User:</strong> <%= user ? user.email : 'none' %></p>
+  <p><strong>Account:</strong> <%= account ? account.accountNumber : 'none' %></p>
+  <p><strong>Balance:</strong> <%= account ? account.balance : 'n/a' %></p>
+  <p><strong>Accounts found for user:</strong> <%= duplicates %></p>
+  <% if (duplicates > 1) { %>
+    <p style="color: red;">Warning: Duplicate accounts detected for this user.</p>
+  <% } %>
+</main>
+<%- include('includes/footer') %>
