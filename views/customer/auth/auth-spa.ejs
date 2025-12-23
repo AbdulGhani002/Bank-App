@@ -1,0 +1,19 @@
+<%- include('../../shared/includes/head' , {title:"Auth - Moneyy SPA"}) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+<%- include('../../shared/includes/header') %>
+<main>
+  <section id="auth-spa" class="auth-spa">
+    <nav class="auth-nav">
+      <button id="nav-login" class="active">Login</button>
+      <button id="nav-signup">Create account</button>
+    </nav>
+    <div id="auth-container"></div>
+  </section>
+</main>
+
+<meta name="csrf-token" content="<%= csrfToken %>">
+<script src="/js/auth-spa.js"></script>
+<%- include('../../shared/includes/footer') %>
+</body>

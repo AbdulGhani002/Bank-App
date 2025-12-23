@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require("mongodb");
 const db = require("../data/database");
+const { getUserAccountStatus } = require("../utils/verification");
 
 const checkUser = async (req, res, next) => {
   const userToken = req.cookies.jwt;
@@ -22,11 +23,16 @@ const checkUser = async (req, res, next) => {
   next();
 };
 
-const requireAuth = (req, res, next) => {
+const requireAuth = async (req, res, next) => {
   if (res.locals.user) {
+    // Check if user's account is locked
+    const accountStatus = await getUserAccountStatus(res.locals.user._id);
+    if (accountStatus.status === 'locked') {
+      return res.status(403).redirect(`/account-locked?message=${encodeURIComponent(accountStatus.message)}`);
+    }
     next();
   } else {
-    res.redirect("/login?error=Login First.");
+    res.redirect("/login?error=Login%20to%20continue");
   }
 };
 

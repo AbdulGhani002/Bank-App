@@ -5,13 +5,11 @@ const db = require("../data/database");
 const ObjectId = mongodb.ObjectId;
 const Transaction = require("../models/transaction.model");
 const sendEmail = require("../utils/email");
+const { getCurrentAccount, enrichTransactions, formatDate } = require("../utils/transactions");
 
 const getDepositMoney = async (req, res) => {
   const userData = res.locals.user;
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ userId: new ObjectId(userData._id) });
+  const accountDetails = await getCurrentAccount(userData);
   if (!userData) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
@@ -37,10 +35,7 @@ const depositMoney = async (req, res) => {
   try {
     const amount = parseFloat(req.body.amount);
     const userData = res.locals.user;
-    const account = await db
-      .getDb()
-      .collection("Accounts")
-      .findOne({ userId: new ObjectId(userData._id) });
+    const account = await getCurrentAccount(userData);
 
     if (!account) {
       return res.status(404).send("Account not found");
@@ -83,10 +78,7 @@ const depositMoney = async (req, res) => {
 
 const getPaymentPage = async (req, res) => {
   const userData = res.locals.user;
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ userId: new ObjectId(userData._id) });
+  const accountDetails = await getCurrentAccount(userData);
   if (!userData) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
@@ -221,48 +213,8 @@ const getTransactions = async (req, res) => {
   if (!accountDetails) {
     res.redirect("/login?error=Invalid email or password. Please try again.");
   }
-  const transactions = await Transaction.getTransactionsByAccount(
-    accountDetails.accountNumber
-  );
-  // Enrich transactions for list view: formatted date, direction, counterpart details
-  const options = {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  };
-  const counterpartNumbers = new Set();
-  transactions.forEach((t) => {
-    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
-    t.direction = isSender ? "out" : "in";
-    t.counterpartAccountNumber = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
-    const d = new Date(t.date);
-    t.formattedDate = d.toLocaleString("en-US", options);
-    if (t.counterpartAccountNumber) counterpartNumbers.add(t.counterpartAccountNumber);
-  });
-  const counterpartAccounts = await db
-    .getDb()
-    .collection("Accounts")
-    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
-    .toArray();
-  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
-  const counterpartUsers = await db
-    .getDb()
-    .collection("Users")
-    .find({ _id: { $in: userIds } })
-    .toArray();
-  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
-  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
-  transactions.forEach((t) => {
-    const acc = accountMap.get(t.counterpartAccountNumber);
-    if (acc) {
-      const u = userMap.get(String(acc.userId));
-      t.counterpartName = u?.name || null;
-      t.counterpartEmail = u?.email || null;
-    }
-  });
+  const transactionsRaw = await Transaction.getTransactionsByAccount(accountDetails.accountNumber);
+  const transactions = await enrichTransactions(transactionsRaw, accountDetails.accountNumber);
   res.render("customer/transactions", {
     userData: userData,
     accountDetails: accountDetails,
@@ -319,19 +271,14 @@ const getTransactionDetails = async (req, res) => {
 };
 const getStatement = async (req, res) => {
   const userData = res.locals.user;
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ userId: new ObjectId(userData._id) });
+  const accountDetails = await getCurrentAccount(userData);
   if (!userData) {
     return res.redirect("/login");
   }
   if (!accountDetails) {
     return res.redirect("/login");
   }
-  const transactions = await Transaction.getTransactionsByAccount(
-    accountDetails.accountNumber
-  );
+  const transactions = await Transaction.getTransactionsByAccount(accountDetails.accountNumber);
   if (
     transactions.length == 0 ||
     transactions == null ||
@@ -377,42 +324,9 @@ const getStatement = async (req, res) => {
       month: "long",
       day: "numeric",
     });
-  // Enrich transactions with formatted date and counterpart details
-  const counterpartNumbers = new Set();
-  transactions.forEach((t) => {
-    const transactionDate = new Date(t.date);
-    t.formattedDate = transactionDate.toLocaleString("en-US", options);
-    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
-    const counterpart = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
-    if (counterpart) counterpartNumbers.add(counterpart);
-  });
-  // Batch load counterpart accounts and users
-  const counterpartAccounts = await db
-    .getDb()
-    .collection("Accounts")
-    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
-    .toArray();
-  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
-  const counterpartUsers = await db
-    .getDb()
-    .collection("Users")
-    .find({ _id: { $in: userIds } })
-    .toArray();
-  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
-  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
-  transactions.forEach((t) => {
-    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
-    const counterpartNo = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
-    const acc = accountMap.get(counterpartNo);
-    if (acc) {
-      const user = userMap.get(String(acc.userId));
-      t.counterpartName = user?.name || null;
-      t.counterpartEmail = user?.email || null;
-    }
-  });
+  await enrichTransactions(transactions, accountDetails.accountNumber);
 
-  let currentDate = new Date();
-  currentDate = currentDate.toLocaleDateString("en-US", options);
+  let currentDate = formatDate(new Date(), options);
   res.render("customer/financial-statement", {
     userData: userData,
     accountDetails: accountDetails,
@@ -424,19 +338,14 @@ const getStatement = async (req, res) => {
 };
 const generatePDF = async (req, res) => {
   const userData = res.locals.user;
-  const accountDetails = await db
-    .getDb()
-    .collection("Accounts")
-    .findOne({ userId: new ObjectId(userData._id) });
+  const accountDetails = await getCurrentAccount(userData);
   if (!userData) {
     return res.redirect("/login");
   }
   if (!accountDetails) {
     return res.redirect("/login");
   }
-  const transactions = await Transaction.getTransactionsByAccount(
-    accountDetails.accountNumber
-  );
+  const transactions = await Transaction.getTransactionsByAccount(accountDetails.accountNumber);
   if (
     transactions.length == 0 ||
     transactions == null ||
@@ -462,40 +371,8 @@ const generatePDF = async (req, res) => {
     second: "numeric",
   };
   transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-  // Enrich for PDF: formatted date + counterpart details
-  const counterpartNumbers = new Set();
-  transactions.forEach((t) => {
-    const transactionDate = new Date(t.date);
-    t.formattedDate = transactionDate.toLocaleString("en-US", options);
-    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
-    const counterpart = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
-    if (counterpart) counterpartNumbers.add(counterpart);
-  });
-  const counterpartAccounts = await db
-    .getDb()
-    .collection("Accounts")
-    .find({ accountNumber: { $in: Array.from(counterpartNumbers) } })
-    .toArray();
-  const userIds = counterpartAccounts.map((a) => a.userId).filter(Boolean);
-  const counterpartUsers = await db
-    .getDb()
-    .collection("Users")
-    .find({ _id: { $in: userIds } })
-    .toArray();
-  const accountMap = new Map(counterpartAccounts.map((a) => [a.accountNumber, a]));
-  const userMap = new Map(counterpartUsers.map((u) => [String(u._id), u]));
-  transactions.forEach((t) => {
-    const isSender = t.senderAccountNumber === accountDetails.accountNumber;
-    const counterpartNo = isSender ? t.receiverAccountNumber : t.senderAccountNumber;
-    const acc = accountMap.get(counterpartNo);
-    if (acc) {
-      const user = userMap.get(String(acc.userId));
-      t.counterpartName = user?.name || null;
-      t.counterpartEmail = user?.email || null;
-    }
-  });
-  let currentDate = new Date();
-  currentDate = currentDate.toLocaleDateString("en-US", options);
+  await enrichTransactions(transactions, accountDetails.accountNumber);
+  let currentDate = formatDate(new Date(), options);
   // Styled PDF generation
   const doc = new PDFDocument({ margin: 40, size: 'A4' });
   res.setHeader("Content-Type", "application/pdf");

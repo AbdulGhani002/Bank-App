@@ -1,0 +1,28 @@
+<%- include('../../shared/includes/head' , {title:"Account Locked - Moneyy"}) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+<%- include("../../shared/includes/header") %>
+<main>
+    <h1>Account Locked</h1>
+    <div style="background: #fff3cd; padding: 16px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <p><strong>Your account has been locked.</strong></p>
+        <p><%= message %></p>
+        <p>Possible reasons:</p>
+        <ul>
+            <li>Your email verification window (2 hours) expired without verifying your email address.</li>
+            <li>Your account has been locked by our security team.</li>
+        </ul>
+    </div>
+    
+    <h2>What to do next?</h2>
+    <p>Please contact our customer support team to unlock your account:</p>
+    <p>
+        <strong>Email:</strong> support@moneyy-bank.com<br>
+        <strong>Phone:</strong> 1-800-MONEYY-1<br>
+        <strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM
+    </p>
+
+    <p><a href="/">Back to Home</a></p>
+</main>
+<%- include("../../shared/includes/footer") %>

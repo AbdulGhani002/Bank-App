@@ -9,8 +9,14 @@ Bank-App is a secure, full‑stack Node.js/Express banking demo with EJS views a
 ### Authentication & Authorization
 - JWT authentication with secure, httpOnly cookies
 - Email verification on signup (login requires verified accounts)
-- Optional Two‑Factor Authentication (TOTP via speakeasy/qrcode)
-- Session usage only for 2FA flow; app is otherwise stateless via JWT
+- **Two-Factor Authentication (2FA):**
+  - Email-based 2FA: 6-digit code sent to email, expires in 5 minutes
+  - TOTP-based 2FA: Optional QR code setup for authenticator apps
+  - Session used only for 2FA flow; app is otherwise stateless via JWT
+- **Account Verification Window:**
+  - 2-hour verification window after signup
+  - Unverified accounts lock automatically after 2 hours
+  - Locked accounts require customer support contact to unlock
 
 ### Account & Transactions
 - One account per user (enforced with unique constraint)
@@ -33,15 +39,24 @@ Bank-App is a secure, full‑stack Node.js/Express banking demo with EJS views a
 - Express rate limiting with proxy awareness
 - Trusts only first proxy hop (`app.set('trust proxy', 1)`)
 
+### User Experience (UX)
+- **Toast Notifications:** Real-time error/success messages in toast format for login and signup
+- **Loading Spinners:** Visual feedback during signup and login processes
+- **AJAX-based Forms:** No full page reloads for auth flows; smooth, single-page-like experience
+- **Customer Support Page:** Easy access to support contact information
+
 ### Email
 - Nodemailer utility with single `sendEmail(to, subject, text)` export
 - Transport `verify()` helper for diagnostics
 - Signup verification email with token link
+- Email-based 2FA code generation and delivery
+- Password reset and support emails
 
 ### Diagnostics & Admin
 - `/health` and `/health/email` endpoints
 - Admin‑only route listing at `/routes`
 - Admin email test and linkage diagnostics (see controllers/routes)
+- Account status checker for verification expiry
 
 ### PWA
 - `manifest.json` and `service-worker.js` for basic offline caching of static assets

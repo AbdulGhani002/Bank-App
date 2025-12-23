@@ -40,6 +40,18 @@ async function sendEmail(to, subject, text) {
   }
 }
 
+// Generate a 6-digit 2FA code
+function generate2FACode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Send 2FA code via email
+async function send2FACode(to, code) {
+  const subject = "Your 2FA Code";
+  const text = `Your 2FA verification code is: ${code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email.`;
+  return sendEmail(to, subject, text);
+}
+
 // Attach a transport verification helper without changing the default export shape
 sendEmail.verify = async function verifyEmailTransport() {
   try {
@@ -52,3 +64,5 @@ sendEmail.verify = async function verifyEmailTransport() {
 };
 
 module.exports = sendEmail;
+module.exports.generate2FACode = generate2FACode;
+module.exports.send2FACode = send2FACode;

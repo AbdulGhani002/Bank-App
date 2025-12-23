@@ -1,0 +1,63 @@
+<%- include('../../shared/includes/head' , {title:"Verify 2FA Code - Moneyy"}) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+<%- include("../../shared/includes/header") %>
+<main>
+    <h1>Verify 2FA Code</h1>
+    <p>A verification code has been sent to your email. Please enter it below.</p>
+
+    <form id="verify-2fa-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label for="code">Verification Code: </label>
+        <input type="text" name="code" id="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+        <button type="submit">Verify</button>
+    </form>
+    <p><a href="/login">Back to Login</a></p>
+</main>
+
+<script>
+document.getElementById('verify-2fa-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = document.getElementById('code').value;
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
+
+  try {
+    const response = await fetch('/api/verify-email-2fa', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      window.location.href = result.redirectUrl;
+    } else {
+      showToast(result.error || 'Verification failed', 'error');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('An error occurred during verification', 'error');
+  }
+});
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  toast.style.cssText = `
+    position: fixed; top: 20px; right: 20px;
+    background: ${type === 'error' ? '#f44336' : '#4caf50'};
+    color: white; padding: 16px 24px;
+    border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10000; animation: slideIn 0.3s ease;
+  `;
+  setTimeout(() => toast.remove(), 4000);
+}
+</script>
+
+<%- include("../../shared/includes/footer") %>

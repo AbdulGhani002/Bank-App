@@ -1,0 +1,59 @@
+<%- include('shared/includes/head' , {title:"Customer Support - Moneyy"}) %>
+<link rel="stylesheet" href="/styles/auth.css">
+</head>
+<body>
+<%- include("shared/includes/header") %>
+<main>
+    <h1>Customer Support</h1>
+    
+    <div style="max-width: 600px; margin: 40px auto;">
+        <section style="margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 4px;">
+            <h2>Contact Us</h2>
+            <p>We're here to help! If you have any questions or concerns, please reach out:</p>
+            
+            <h3>Email Support</h3>
+            <p>
+                <strong>General Inquiries:</strong> support@moneyy-bank.com<br>
+                <strong>Account Issues:</strong> accounts@moneyy-bank.com<br>
+                <strong>Security Issues:</strong> security@moneyy-bank.com
+            </p>
+
+            <h3>Phone Support</h3>
+            <p>
+                <strong>Main Line:</strong> 1-800-MONEYY-1 (1-800-666-3991)<br>
+                <strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM EST
+            </p>
+
+            <h3>Live Chat</h3>
+            <p><a href="#" id="chat-btn" style="color: #007bff; text-decoration: none;">Start a live chat</a> (Available during business hours)</p>
+
+            <h3>Mailing Address</h3>
+            <p>
+                Moneyy Bank<br>
+                Customer Support Department<br>
+                Mianwali, Pakistan<br>
+            </p>
+        </section>
+
+        <section style="margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 4px;">
+            <h2>Common Issues</h2>
+            <ul>
+                <li><strong>Account Locked:</strong> If your account is locked, email us at accounts@moneyy-bank.com with proof of identity.</li>
+                <li><strong>Verification Email Not Received:</strong> Check your spam folder or request a new verification email.</li>
+                <li><strong>Forgot Password:</strong> Use the "Forgot Password" option on the login page.</li>
+                <li><strong>2FA Issues:</strong> Contact security@moneyy-bank.com for assistance with two-factor authentication.</li>
+            </ul>
+        </section>
+    </div>
+
+    <p style="text-align: center;"><a href="/">Back to Home</a></p>
+</main>
+
+<script>
+document.getElementById('chat-btn').addEventListener('click', (e) => {
+  e.preventDefault();
+  alert('Live chat is currently unavailable. Please use email or phone support.');
+});
+</script>
+
+<%- include("shared/includes/footer") %>

@@ -16,4 +16,20 @@ router.get(
   limiter,
   baseController.getHome
 );
+
+router.get("/customer-support", limiter, (req, res) => {
+  res.render("shared/customer-support", {
+    userData: res.locals.user || null,
+    accountDetails: null,
+  });
+});
+
+router.get("/account-locked", limiter, (req, res) => {
+  res.render("shared/account-locked", {
+    message: req.query.message || "Your account has been locked.",
+    userData: null,
+    accountDetails: null,
+  });
+});
+
 module.exports = router;

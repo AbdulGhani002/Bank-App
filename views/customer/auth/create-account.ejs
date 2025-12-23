@@ -2,6 +2,64 @@
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <meta name="google-signin-client_id" content="304379979277-qsbt6sf6s69oh7tnrhg2renc47vrb4b8.apps.googleusercontent.com">
 <link rel="stylesheet" href="/styles/auth.css">
+<style>
+  .loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 3.7s forwards;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .toast-success {
+    background-color: #4caf50;
+  }
+  .toast-error {
+    background-color: #f44336;
+  }
+  .toast-info {
+    background-color: #2196f3;
+  }
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+</style>
 </head>
 <body>
     <script>
@@ -18,7 +76,7 @@
 <main>
     <h1>Create New Account</h1>
 
-    <form action="/signup" method="POST">
+    <form id="signup-form">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <% if(error){ %>
             <p class="error"><%= error %></p>
@@ -42,9 +100,87 @@
         <input type="password" name="password" value="<%=password%>" id="password" minlength="8" required>
         <label for="confirmPassword">Confirm Password: </label>
         <input type="password" name="confirmPassword" value="<%=confirmPassword%>" id="confirmPassword" required>
-        <button>Create New Account</button>
+        <button type="submit">
+          <span class="loading-spinner" id="spinner"></span>
+          <span id="btn-text">Create New Account</span>
+        </button>
         <div class="g-signin2" data-onsuccess="onSignIn"></div>
     </form>
     <p>Or <a href="/login">Login Instead</a></p>
 </main>
+
+<script>
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(document.getElementById('signup-form'));
+  const data = Object.fromEntries(formData);
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+
+  // Validate password match
+  if (data.password !== data.confirmPassword) {
+    showToast('Passwords do not match', 'error');
+    return;
+  }
+
+  spinner.style.display = 'inline-block';
+  btnText.textContent = 'Creating Account...';
+
+  try {
+    const response = await fetch('/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        ...data,
+        _csrf: csrfToken,
+      }),
+    });
+
+    spinner.style.display = 'none';
+    btnText.textContent = 'Create New Account';
+
+    if (response.ok) {
+      showToast('Account created successfully! Redirecting to login...', 'success');
+      setTimeout(() => window.location.href = '/login?successMessage=Account%20created%20successfully.%20Please%20check%20your%20email%20to%20verify%20your%20account.', 1500);
+    } else if (response.status === 302 || response.status === 301) {
+      // Redirect response
+      window.location.href = response.url;
+    } else {
+      const text = await response.text();
+      if (text.includes('User already exists')) {
+        showToast('User already exists. Please login instead.', 'error');
+      } else if (text.includes('passwords do not match')) {
+        showToast('Passwords do not match', 'error');
+      } else {
+        showToast('Signup failed. Please try again.', 'error');
+      }
+    }
+  } catch (error) {
+    spinner.style.display = 'none';
+    btnText.textContent = 'Create New Account';
+    console.error('Error:', error);
+    showToast('An error occurred during signup', 'error');
+  }
+});
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Show error message if present
+window.addEventListener('load', () => {
+  const errorMsg = document.querySelector('.error');
+  if (errorMsg && errorMsg.textContent.trim()) {
+    showToast(errorMsg.textContent, 'error');
+  }
+});
+</script>
+
 <%- include("../../shared/includes/footer") %>

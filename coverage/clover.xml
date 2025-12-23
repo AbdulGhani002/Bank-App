@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1760684205142" clover="3.2.0">
-  <project timestamp="1760684205142" name="All files">
-    <metrics statements="658" coveredstatements="323" conditionals="225" coveredconditionals="46" methods="88" coveredmethods="28" elements="971" coveredelements="397" complexity="0" loc="658" ncloc="658" packages="6" files="20" classes="20"/>
+<coverage generated="1760696972653" clover="3.2.0">
+  <project timestamp="1760696972653" name="All files">
+    <metrics statements="663" coveredstatements="323" conditionals="229" coveredconditionals="46" methods="88" coveredmethods="28" elements="980" coveredelements="397" complexity="0" loc="663" ncloc="663" packages="6" files="20" classes="20"/>
     <package name="Bank-App">
       <metrics statements="61" coveredstatements="49" conditionals="13" coveredconditionals="3" methods="7" coveredmethods="1"/>
       <file name="app.js" path="C:\CC\Code\Bank-App\app.js">
@@ -70,7 +70,7 @@
       </file>
     </package>
     <package name="Bank-App.controllers">
-      <metrics statements="340" coveredstatements="162" conditionals="140" coveredconditionals="39" methods="42" coveredmethods="21"/>
+      <metrics statements="344" coveredstatements="162" conditionals="144" coveredconditionals="39" methods="42" coveredmethods="21"/>
       <file name="account.controller.js" path="C:\CC\Code\Bank-App\controllers\account.controller.js">
         <metrics statements="238" coveredstatements="132" conditionals="104" coveredconditionals="36" methods="27" coveredmethods="19"/>
         <line num="1" count="5" type="stmt"/>
@@ -313,7 +313,7 @@
         <line num="554" count="5" type="stmt"/>
       </file>
       <file name="auth.controller.js" path="C:\CC\Code\Bank-App\controllers\auth.controller.js">
-        <metrics statements="90" coveredstatements="24" conditionals="32" coveredconditionals="2" methods="13" coveredmethods="1"/>
+        <metrics statements="94" coveredstatements="24" conditionals="36" coveredconditionals="2" methods="13" coveredmethods="1"/>
         <line num="1" count="5" type="stmt"/>
         <line num="2" count="5" type="stmt"/>
         <line num="3" count="5" type="stmt"/>
@@ -395,15 +395,19 @@
         <line num="286" count="0" type="stmt"/>
         <line num="291" count="0" type="stmt"/>
         <line num="293" count="0" type="stmt"/>
-        <line num="294" count="0" type="stmt"/>
-        <line num="299" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="300" count="0" type="stmt"/>
-        <line num="305" count="0" type="stmt"/>
+        <line num="295" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="296" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="297" count="0" type="stmt"/>
+        <line num="301" count="0" type="stmt"/>
+        <line num="302" count="0" type="stmt"/>
+        <line num="307" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="308" count="0" type="stmt"/>
         <line num="313" count="0" type="stmt"/>
-        <line num="315" count="0" type="stmt"/>
-        <line num="319" count="5" type="stmt"/>
-        <line num="320" count="0" type="stmt"/>
-        <line num="324" count="5" type="stmt"/>
+        <line num="321" count="0" type="stmt"/>
+        <line num="323" count="0" type="stmt"/>
+        <line num="327" count="5" type="stmt"/>
+        <line num="328" count="0" type="stmt"/>
+        <line num="332" count="5" type="stmt"/>
       </file>
       <file name="base.controller.js" path="C:\CC\Code\Bank-App\controllers\base.controller.js">
         <metrics statements="12" coveredstatements="6" conditionals="4" coveredconditionals="1" methods="2" coveredmethods="1"/>
@@ -466,7 +470,7 @@
       </file>
     </package>
     <package name="Bank-App.models">
-      <metrics statements="104" coveredstatements="20" conditionals="14" coveredconditionals="0" methods="19" coveredmethods="3"/>
+      <metrics statements="105" coveredstatements="20" conditionals="14" coveredconditionals="0" methods="19" coveredmethods="3"/>
       <file name="account.model.js" path="C:\CC\Code\Bank-App\models\account.model.js">
         <metrics statements="46" coveredstatements="3" conditionals="10" coveredconditionals="0" methods="7" coveredmethods="0"/>
         <line num="1" count="5" type="stmt"/>
@@ -546,7 +550,7 @@
         <line num="67" count="5" type="stmt"/>
       </file>
       <file name="user.model.js" path="C:\CC\Code\Bank-App\models\user.model.js">
-        <metrics statements="32" coveredstatements="12" conditionals="2" coveredconditionals="0" methods="8" coveredmethods="2"/>
+        <metrics statements="33" coveredstatements="12" conditionals="2" coveredconditionals="0" methods="8" coveredmethods="2"/>
         <line num="1" count="5" type="stmt"/>
         <line num="2" count="5" type="stmt"/>
         <line num="3" count="5" type="stmt"/>
@@ -566,19 +570,20 @@
         <line num="32" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
         <line num="39" count="0" type="stmt"/>
-        <line num="41" count="0" type="stmt"/>
-        <line num="42" count="0" type="stmt"/>
-        <line num="52" count="0" type="stmt"/>
-        <line num="53" count="0" type="stmt"/>
-        <line num="55" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
         <line num="56" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
         <line num="61" count="0" type="stmt"/>
-        <line num="64" count="0" type="stmt"/>
-        <line num="65" count="0" type="stmt"/>
-        <line num="68" count="0" type="stmt"/>
-        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
         <line num="70" count="0" type="stmt"/>
-        <line num="74" count="5" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="79" count="5" type="stmt"/>
       </file>
     </package>
     <package name="Bank-App.routes">

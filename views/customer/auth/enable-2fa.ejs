@@ -1,8 +1,8 @@
-<%- include('../shared/includes/head', { pageTitle: 'Enable 2FA' }) %>
+<%- include('../../shared/includes/head', {title: 'Enable 2FA - Moneyy'}) %>
 <link rel="stylesheet" href="/styles/auth.css">
 </head>
 <body>
-  <%- include('../shared/includes/header') %>
+  <%- include("../../shared/includes/header") %>
   <main>
     <h1>Enable Two-Factor Authentication</h1>
     <% if (error) { %>
@@ -20,6 +20,6 @@
       <button type="submit" class="btn">Enable 2FA</button>
     </form>
   </main>
-  <%- include('../shared/includes/footer') %>
+  <%- include("../../shared/includes/footer") %>
 </body>
 </html>

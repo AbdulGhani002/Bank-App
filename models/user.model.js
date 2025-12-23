@@ -15,6 +15,10 @@ class User {
     };
     this.isVerified = false;
     this.verificationToken = null;
+    this.tokenCreatedAt = null;
+    this.accountLocked = false;
+    this.twoFACode = null;
+    this.twoFACodeExpiry = null;
   }
 
   async getUserByEmail(email) {
@@ -51,6 +55,8 @@ class User {
         address: this.address,
         isVerified: this.isVerified,
         verificationToken: verificationToken,
+        tokenCreatedAt: new Date(),
+        accountLocked: false,
       };
 
   const result = await db.getDb().collection("Users").insertOne(newUser);

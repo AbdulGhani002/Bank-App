@@ -4,7 +4,252 @@
    <%- include("shared/includes/header")%>
    <main>
     <section class="content">
-      <h1>Welcome to Moneyy</h1>
+      <div id="app">
+        <div id="toast-container" aria-live="polite" style="position:fixed;top:1rem;right:1rem;z-index:9999"></div>
+
+        <section id="homeView">
+          <h1>Welcome to Moneyy</h1>
+          <p class="muted">Single Page experience: use Login or Make new Account without full page reload.</p>
+          <p><a href="/signup" id="new-account-button">Make new Account</a></p>
+          <p>Or <a href="/login" id="login-link">Login Instead</a></p>
+        </section>
+
+        <section id="loginView" style="display:none;">
+          <h2>Login</h2>
+          <form id="loginForm">
+        <label>Email <input type="email" name="email" required></label><br>
+        <label>Password <input type="password" name="password" required></label><br>
+        <button type="submit">Login</button>
+        <button type="button" id="login-cancel">Cancel</button>
+          </form>
+        </section>
+
+        <section id="signupView" style="display:none;">
+          <h2>Register</h2>
+          <form id="signupForm">
+        <label>Name <input type="text" name="name" required></label><br>
+        <label>Email <input type="email" name="email" required></label><br>
+        <label>Password <input type="password" name="password" required></label><br>
+        <button type="submit">Create Account</button>
+        <button type="button" id="signup-cancel">Cancel</button>
+          </form>
+          <p id="verify-info" style="display:none;"></p>
+        </section>
+
+        <div id="loader" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:9998">
+          <div style="background:#fff;padding:1rem 1.5rem;border-radius:6px;">Processing…</div>
+        </div>
+
+        <div id="twoFaModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:9999">
+          <div style="background:#fff;padding:1rem 1.5rem;border-radius:6px;width:320px;">
+        <h3>Two‑Factor Verification</h3>
+        <p id="twofa-desc">Enter the code sent to your email.</p>
+        <form id="twofaForm">
+          <input type="text" name="code" placeholder="123456" required pattern="\d{4,8}">
+          <input type="hidden" name="email" id="twofa-email">
+          <div style="margin-top:.5rem">
+            <button type="submit">Verify</button>
+            <button type="button" id="twofa-resend">Resend</button>
+            <button type="button" id="twofa-cancel">Close</button>
+          </div>
+        </form>
+        <p style="margin-top:.5rem;font-size:.9rem">Time left to verify: <span id="verify-timer">--:--:--</span></p>
+        <p id="verify-expired" style="display:none;color:red">Verification period expired. Your account will be restricted. Contact support.</p>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        // SPA view handling
+        (function(){
+          const views = { home: document.getElementById('homeView'), login: document.getElementById('loginView'), signup: document.getElementById('signupView') };
+          const toastContainer = document.getElementById('toast-container');
+          const loader = document.getElementById('loader');
+          const twofaModal = document.getElementById('twoFaModal');
+          let verifyTimerId = null;
+          let verifyExpiresAt = null; // timestamp ms
+
+          function showView(name){
+        Object.values(views).forEach(v=>v.style.display='none');
+        if(views[name]) views[name].style.display='';
+        history.pushState({view:name},'', name==='home'? '/' : ('/'+name));
+          }
+          // anchor routing
+          document.getElementById('new-account-button').addEventListener('click', function(e){ e.preventDefault(); showView('signup'); });
+          document.getElementById('login-link').addEventListener('click', function(e){ e.preventDefault(); showView('login'); });
+          document.getElementById('login-cancel').addEventListener('click', ()=>showView('home'));
+          document.getElementById('signup-cancel').addEventListener('click', ()=>showView('home'));
+
+          // toasts - accepts string or array of strings
+          function showToasts(msgs, opts = {}){
+        if(!msgs) return;
+        const list = Array.isArray(msgs)? msgs : [msgs];
+        list.forEach(text=>{
+          const t = document.createElement('div');
+          t.textContent = text;
+          t.style.background = opts.error ? '#ffefef' : '#f0fff4';
+          t.style.color = '#111';
+          t.style.padding = '8px 12px';
+          t.style.marginTop = '8px';
+          t.style.borderRadius = '6px';
+          t.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+          toastContainer.appendChild(t);
+          setTimeout(()=> t.remove(), opts.duration || 6000);
+        });
+          }
+
+          function showLoader(on){ loader.style.display = on ? 'flex' : 'none'; }
+
+          // forms
+          const loginForm = document.getElementById('loginForm');
+          const signupForm = document.getElementById('signupForm');
+          const twofaForm = document.getElementById('twofaForm');
+
+          async function postJSON(url, data){
+        const res = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(data) });
+        const json = await res.json().catch(()=>({ success:false, errors:['Invalid server response'] }));
+        return { ok: res.ok, json };
+          }
+
+          loginForm.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd = new FormData(loginForm);
+        const payload = Object.fromEntries(fd);
+        showLoader(true);
+        const { ok, json } = await postJSON('/login', payload);
+        showLoader(false);
+        if(json && json.errors){ showToasts(json.errors, { error:true }); return; }
+        if(json && json.require2FA){
+          openTwoFA(json.email, json.expiresAt || (Date.now() + 2*3600*1000));
+          showToasts('2FA required. Check your email for the code.');
+          return;
+        }
+        if(ok && json.success){
+          showToasts('Logged in successfully.');
+          showView('home');
+          return;
+        }
+        showToasts(json.message || 'Login failed', { error:true });
+          });
+
+          signupForm.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd = new FormData(signupForm);
+        const payload = Object.fromEntries(fd);
+        showLoader(true);
+        const { ok, json } = await postJSON('/signup', payload);
+        showLoader(false);
+        if(json && json.errors){ showToasts(json.errors, { error:true }); return; }
+        if(ok && json.success){
+          if(json.require2FA){
+            openTwoFA(json.email, json.expiresAt || (Date.now() + 2*3600*1000));
+            document.getElementById('verify-info').style.display = '';
+            document.getElementById('verify-info').textContent = 'A verification code was sent to your email. You have 2 hours to verify.';
+            showToasts('Account created. Verify email to activate.');
+          } else {
+            showToasts('Account created.');
+            showView('home');
+          }
+          return;
+        }
+        showToasts(json.message || 'Signup failed', { error:true });
+          });
+
+          // 2FA modal handlers
+          function openTwoFA(email, expiresAtTs){
+        document.getElementById('twofa-email').value = email;
+        twofaModal.style.display = 'flex';
+        verifyExpiresAt = expiresAtTs;
+        startVerifyTimer();
+          }
+          document.getElementById('twofa-cancel').addEventListener('click', ()=>{
+        twofaModal.style.display = 'none';
+        stopVerifyTimer();
+          });
+          document.getElementById('twofa-resend').addEventListener('click', async ()=>{
+        const email = document.getElementById('twofa-email').value;
+        const { json } = await postJSON('/resend-2fa', { email });
+        if(json && json.success){
+          showToasts('Verification code resent.');
+          verifyExpiresAt = json.expiresAt || (Date.now() + 2*3600*1000);
+          startVerifyTimer();
+        } else {
+          showToasts(json.errors || json.message || 'Resend failed', { error:true });
+        }
+          });
+
+          twofaForm.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd = new FormData(twofaForm);
+        const payload = Object.fromEntries(fd);
+        showLoader(true);
+        const { ok, json } = await postJSON('/verify-2fa', payload);
+        showLoader(false);
+        if(json && json.errors){ showToasts(json.errors, { error:true }); return; }
+        if(ok && json.success){
+          showToasts('Verification successful.');
+          twofaModal.style.display = 'none';
+          stopVerifyTimer();
+          showView('home');
+          return;
+        }
+        showToasts(json.message || 'Verification failed', { error:true });
+          });
+
+          // verification countdown
+          function startVerifyTimer(){
+        stopVerifyTimer();
+        updateTimer();
+        verifyTimerId = setInterval(updateTimer, 1000);
+          }
+          function stopVerifyTimer(){
+        if(verifyTimerId) clearInterval(verifyTimerId);
+        verifyTimerId = null;
+          }
+          function updateTimer(){
+        const el = document.getElementById('verify-timer');
+        const expiredFlag = document.getElementById('verify-expired');
+        if(!verifyExpiresAt){ el.textContent='--:--:--'; return; }
+        const diff = verifyExpiresAt - Date.now();
+        if(diff <= 0){
+          el.textContent = '00:00:00';
+          expiredFlag.style.display = '';
+          // attempt to notify server to restrict the account
+          (async ()=> {
+            stopVerifyTimer();
+            try { await fetch('/api/restrict-unverified', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: document.getElementById('twofa-email').value }) }); }
+            catch(e){ /* best-effort */ }
+          })();
+          return;
+        }
+        expiredFlag.style.display = 'none';
+        const hrs = String(Math.floor(diff/3600000)).padStart(2,'0');
+        const mins = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+        const secs = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+        el.textContent = hrs+':'+mins+':'+secs;
+          }
+
+          // initial view
+          showView('home');
+
+          // handle back/forward
+          window.addEventListener('popstate', (e)=> {
+        const view = e.state && e.state.view ? e.state.view : 'home';
+        Object.values(views).forEach(v=>v.style.display='none');
+        if(views[view]) views[view].style.display='';
+          });
+
+          // global click interception for SPA anchors (optional)
+          document.addEventListener('click', function(e){
+        const a = e.target.closest && e.target.closest('a');
+        if(!a) return;
+        const href = a.getAttribute('href');
+        if(!href) return;
+        if(href.startsWith('/login')) { e.preventDefault(); showView('login'); }
+        else if(href.startsWith('/signup')) { e.preventDefault(); showView('signup'); }
+          });
+        })();
+      </script>
       <p>We provide best banking services - Make Moneyy account now</p>
       <p><a href="/signup" id="new-account-button">Make new Account</a></p>
       <p>Or <a href="/login">Login Instead</a></p>
