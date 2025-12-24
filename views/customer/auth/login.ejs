@@ -66,7 +66,7 @@
 <main>
     <h1>Login</h1>
 
-    <form id="login-form">
+    <form id="login-form" action="/login" method="POST">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <% if(error){ %>
             <p class="error"><%= error %></p>
@@ -86,51 +86,14 @@
     <p>Or <a href="/signup">Create new account</a> instead.</p>
 </main>
 
-<script>
 document.getElementById('login-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const csrfToken = document.querySelector('input[name="_csrf"]').value;
+<script>
+document.getElementById('login-form').addEventListener('submit', (e) => {
   const spinner = document.getElementById('spinner');
   const btnText = document.getElementById('btn-text');
-
   spinner.style.display = 'inline-block';
   btnText.textContent = 'Logging in...';
-
-  try {
-    const response = await fetch('/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&_csrf=${encodeURIComponent(csrfToken)}`,
-    });
-
-    spinner.style.display = 'none';
-    btnText.textContent = 'Login';
-
-    if (response.ok) {
-      showToast('Login successful! Redirecting...', 'success');
-      setTimeout(() => window.location.href = response.url, 1500);
-    } else if (response.status === 302 || response.status === 301) {
-      // Redirect response
-      window.location.href = response.url;
-    } else {
-      const text = await response.text();
-      // Check if response is HTML error page
-      if (text.includes('Invalid email')) {
-        showToast('Invalid email or password', 'error');
-      } else {
-        showToast('Login failed. Please try again.', 'error');
-      }
-    }
-  } catch (error) {
-    spinner.style.display = 'none';
-    btnText.textContent = 'Login';
-    console.error('Error:', error);
-    showToast('An error occurred during login', 'error');
-  }
+  // allow normal form submission to proceed (server will redirect)
 });
 
 function showToast(message, type = 'info') {
