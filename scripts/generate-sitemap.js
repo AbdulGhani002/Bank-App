@@ -65,10 +65,11 @@ function scanViews() {
   return paths;
 }
 
-function buildSitemap(urls) {
+function buildSitemap(urls, overrideBase) {
+  const useBase = (overrideBase || baseUrl).replace(/\/$/, '');
   const now = new Date().toISOString();
   const entries = [...urls].map(u => {
-    const loc = `${baseUrl.replace(/\/$/, '')}${u}`;
+    const loc = `${useBase}${u}`;
     return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
   }).join('\n');
 

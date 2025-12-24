@@ -14,7 +14,7 @@ router.get('/sitemap.xml', (req, res) => {
     for (const p of routes) urls.add(p);
     for (const p of views) urls.add(p);
     if (![...urls].some(u => u === '/')) urls.add('/');
-    const xml = buildSitemap(urls);
+    const xml = buildSitemap(urls, baseUrl);
     res.header('Content-Type', 'application/xml');
     return res.send(xml);
   } catch (err) {
