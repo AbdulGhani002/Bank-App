@@ -57,9 +57,8 @@ function scanViews() {
     if (url === '/') {
       paths.add('/');
     } else {
-      // normalize
+      // normalize repeated slashes
       url = url.replace(/\/+/g, '/');
-      url = url.replace(/\/g, '/');
       paths.add(url);
     }
   }
