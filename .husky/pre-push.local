@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Warn if Sonar token or keys are missing
-if [ -z "$SONAR_TOKEN" ]; then
-  echo "[Husky] SONAR_TOKEN not set. SonarCloud scan will be skipped in CI." >&2
-fi
